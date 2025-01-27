@@ -12,7 +12,6 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
-import org.firstinspires.ftc.teamcode.Toros.Util.ArmClass;
 import org.firstinspires.ftc.teamcode.Toros.Util.BatteryClass;
 
 @TeleOp(name = "MainDrive")
@@ -40,7 +39,7 @@ public class MainDrive extends LinearOpMode {
     private DcMotor FrontLeftMotor,BackLeftMotor,FrontRightMotor,BackRightMotor; //Motors
     private  DcMotorEx pivot, slideLeft, slideRight;
     private VoltageSensor volt_prime;
-    private Servo fingers,wrist,elbow;
+    private Servo sampClaw, specClaw;
     Gamepad currentGamepad1 = new Gamepad(), previousGamepad1 = new Gamepad(); //Gamepads used to make toggles
     Gamepad currentGamepad2 = new Gamepad(), previousGamepad2 = new Gamepad();
     @Override
@@ -58,7 +57,7 @@ public class MainDrive extends LinearOpMode {
                 currentGamepad1.copy(gamepad1);
 
                 drive();
-                runPivot();
+                //runPivot();
                 runSlides();
                 claw();
 
@@ -90,9 +89,9 @@ public class MainDrive extends LinearOpMode {
         pivot = hardwareMap.get(DcMotorEx.class,"pivot");
         slideRight = hardwareMap.get(DcMotorEx.class,"slideRight");
         slideLeft = hardwareMap.get(DcMotorEx.class,"slideLeft");
-        fingers = hardwareMap.get(Servo.class,"fingers");
-        wrist = hardwareMap.get(Servo.class,"wrist");
-        elbow = hardwareMap.get(Servo.class,"elbow");
+        sampClaw = hardwareMap.get(Servo.class,"sampClaw");
+        specClaw = hardwareMap.get(Servo.class,"specClaw");
+
 
         slideRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slideLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -203,81 +202,13 @@ public class MainDrive extends LinearOpMode {
         BackRightMotor.setPower(br);
     }
     private void claw(){
-
-
-        if(currentGamepad2.left_stick_button && !previousGamepad2.left_stick_button){
-            directControl = !directControl;
+        if(gamepad2.left_bumper){
+            sampClaw.setPosition(0);
+            specClaw.setPosition(0);
         }
-
-
-
-        if(directControl){
-            if (gamepad2.left_bumper) {
-                fingers.setPosition(0);
-            } else if (gamepad2.right_bumper) {
-                fingers.setPosition(1);
-            }//keep finger control always
-
-            if (gamepad2.b) {
-                wrist.setPosition(0);
-            } else if (gamepad2.y) {
-                wrist.setPosition(1);
-            } else if (gamepad2.x) {
-                wrist.setPosition(0.5);
-
-            }
-
-            if (gamepad2.dpad_down) {
-                elbow.setPosition(1);
-            } else if (gamepad2.dpad_up) {
-                elbow.setPosition(0);
-            }
-
-        }
-        else {
-            if (gamepad2.left_bumper) {
-                fingers.setPosition(0);
-            } else if (gamepad2.right_bumper) {
-                fingers.setPosition(1);
-            }
-            if (gamepad2.b) {
-                wrist.setPosition(0);
-            } else if (gamepad2.x) {
-                wrist.setPosition(0.5);
-
-            }
-            //Set Positions---------------------------------------------------------------------------------
-
-            //Specimens
-            if (gamepad2.dpad_down) {
-                fingers.setPosition(1);
-                wrist.setPosition(0);
-                //arm.runSlides(0);
-                //arm.runPivot(0);
-                fingers.setPosition(0);
-                elbow.setPosition(1);
-            } else if (gamepad2.dpad_up) {
-                fingers.setPosition(1);
-                elbow.setPosition(0.5);
-                wrist.setPosition(1);
-                //arm.runSlides(500);
-                //arm.runPivot(500);
-            }
-            //Samples
-            if (gamepad2.a) {
-                fingers.setPosition(1);
-                wrist.setPosition(0);
-                fingers.setPosition(0);
-                //arm.runSlides(0);
-                //arm.runPivot(1000);
-                elbow.setPosition(0.3);
-            } else if (gamepad2.y){
-                fingers.setPosition(1);
-                elbow.setPosition(0.5);
-                wrist.setPosition(0);
-                //arm.runPivot(500);
-                //arm.runSlides(1000);
-            }
+        else if(gamepad2.right_bumper){
+            sampClaw.setPosition(1);
+            specClaw.setPosition(1);
         }
 
 
@@ -334,6 +265,7 @@ public class MainDrive extends LinearOpMode {
         slideRight.setPower(power);
     }
 }
+
 
 
 //:3

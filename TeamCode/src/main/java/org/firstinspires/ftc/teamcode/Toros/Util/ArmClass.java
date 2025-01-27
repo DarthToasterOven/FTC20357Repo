@@ -9,12 +9,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 
 public class ArmClass {
-    Gamepad gamepad2 = new Gamepad();
+    Gamepad gamepad2;
     private final DcMotorEx pivot, slideLeft, slideRight;
-    public ArmClass(HardwareMap hardwareMap){
+    public ArmClass(HardwareMap hardwareMap,Gamepad Gamepad){
         pivot = hardwareMap.get(DcMotorEx.class,"pivot");
         slideRight = hardwareMap.get(DcMotorEx.class,"slideRight");
         slideLeft = hardwareMap.get(DcMotorEx.class,"slideLeft");
+        gamepad2 = Gamepad;
     }
 
     public void runPivot(){

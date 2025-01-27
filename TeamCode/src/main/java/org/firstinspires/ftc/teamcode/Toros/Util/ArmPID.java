@@ -27,9 +27,9 @@ public class ArmPID extends LinearOpMode {
     public static double f1 = 0.004;
 
     public static int target1 = 425;
-    public static double p2 = 0, i2 = 0, d2 = 0;
+    public static double p2 = 0.0095, i2 = 0.04, d2 = 0.00008;
 
-    public static double f2 = 0;
+    public static double f2 = 0.004;
 
     public static int target2 = 250;
 
@@ -76,6 +76,8 @@ public class ArmPID extends LinearOpMode {
             telemetry.addData("Slide Left Pos", slidePos);
             telemetry.addData("Slide Right Pos", slideRight.getCurrentPosition());
             telemetry.addData("Slide Target", target1);
+            telemetry.addData("Pivot pos", armPos);
+            telemetry.addData("Pivot target",target2);
             telemetry.update();
 
         }
