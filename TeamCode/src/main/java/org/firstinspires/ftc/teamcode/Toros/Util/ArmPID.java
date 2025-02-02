@@ -31,7 +31,7 @@ public class ArmPID extends LinearOpMode {
 
     public static double f2 = 0.004;
 
-    public static int target2 = 250;
+    public static int target2 = -125 ;
 
     private final double ticks_in_degrees = 1440/180;
     private DcMotorEx pivot, slideLeft,slideRight;
@@ -52,16 +52,16 @@ public class ArmPID extends LinearOpMode {
 
         waitForStart();
         while (opModeIsActive()){
-            controller.setPID(p1,i1,d1);
-            int slidePos = slideLeft.getCurrentPosition();
-            double pid = controller.calculate(slidePos, target1);
-            double ff = Math.cos(Math.toRadians(target1/ticks_in_degrees)) * f1;
-
-            double slidePower = pid + ff;
-
-            slideLeft.setPower(slidePower);
-
-            slideRight.setPower(slidePower);
+//            controller.setPID(p1,i1,d1);
+//            int slidePos = slideLeft.getCurrentPosition();
+//            double pid = controller.calculate(slidePos, target1);
+//            double ff = Math.cos(Math.toRadians(target1/ticks_in_degrees)) * f1;
+//
+//            double slidePower = pid + ff;
+//
+//            slideLeft.setPower(slidePower);
+//
+//            slideRight.setPower(slidePower);
 
             controller2.setPID(p2,i2,d2);
             int armPos = pivot.getCurrentPosition();
@@ -73,9 +73,9 @@ public class ArmPID extends LinearOpMode {
             pivot.setPower(pivotPower);
 
 
-            telemetry.addData("Slide Left Pos", slidePos);
-            telemetry.addData("Slide Right Pos", slideRight.getCurrentPosition());
-            telemetry.addData("Slide Target", target1);
+//            telemetry.addData("Slide Left Pos", slidePos);
+//            telemetry.addData("Slide Right Pos", slideRight.getCurrentPosition());
+//            telemetry.addData("Slide Target", target1);
             telemetry.addData("Pivot pos", armPos);
             telemetry.addData("Pivot target",target2);
             telemetry.update();
