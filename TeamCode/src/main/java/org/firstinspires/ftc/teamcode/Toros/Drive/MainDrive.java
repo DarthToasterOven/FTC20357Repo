@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -23,7 +24,7 @@ public class MainDrive extends LinearOpMode {
      **/
 
     private PIDController controller;
-    private boolean Rtoggle,Xtoggle,directControl;
+    private boolean Rtoggle,Xtoggle,breakfast;
     //
     public static double p = 0.004, i = 0.001, d = 0.0005;
     public static double f = 0.195;
@@ -39,7 +40,8 @@ public class MainDrive extends LinearOpMode {
     private DcMotor FrontLeftMotor,BackLeftMotor,FrontRightMotor,BackRightMotor; //Motors
     private  DcMotorEx pivot, slideLeft, slideRight;
     private VoltageSensor volt_prime;
-    private Servo sampClaw, specClaw;
+    private Servo specClaw, budget;
+    private CRServo sampClaw;
     Gamepad currentGamepad1 = new Gamepad(), previousGamepad1 = new Gamepad(); //Gamepads used to make toggles
     Gamepad currentGamepad2 = new Gamepad(), previousGamepad2 = new Gamepad();
     @Override
@@ -89,9 +91,9 @@ public class MainDrive extends LinearOpMode {
         pivot = hardwareMap.get(DcMotorEx.class,"pivot");
         slideRight = hardwareMap.get(DcMotorEx.class,"slideRight");
         slideLeft = hardwareMap.get(DcMotorEx.class,"slideLeft");
-        sampClaw = hardwareMap.get(Servo.class,"sampClaw");
+        sampClaw = hardwareMap.get(CRServo.class,"slurp");
         specClaw = hardwareMap.get(Servo.class,"specClaw");
-
+        budget = hardwareMap.get(Servo.class,"brisket");
 
         slideRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slideLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -113,7 +115,7 @@ public class MainDrive extends LinearOpMode {
 
         BatteryClass battery = new BatteryClass(hardwareMap);
         telemetry.addData("Battery", battery.getBatteryPercent());
-        telemetry.addData("Direct Control",directControl);
+        telemetry.addData("Direct Control",breakfast);
         telemetry.addData("Toggle",Xtoggle);
         telemetry.addData("Toggle",Rtoggle);
         telemetry.update();
@@ -202,62 +204,87 @@ public class MainDrive extends LinearOpMode {
         BackRightMotor.setPower(br);
     }
     private void claw(){
+        if(gamepad2.left_trigger > 0){
+            sampClaw.setPower(gamepad2.left_trigger);
+        }
+        if(gamepad2.right_trigger > 0){
+            sampClaw.setPower(-gamepad2.right_trigger);
+        }
+        if(gamepad2.b){
+            sampClaw.setPower(0);
+        }
         if(gamepad2.left_bumper){
-            sampClaw.setPosition(0);
             specClaw.setPosition(0);
         }
-        else if(gamepad2.right_bumper){
-            sampClaw.setPosition(1);
+        if(gamepad2.right_bumper){
             specClaw.setPosition(1);
         }
+        if(currentGamepad2.y && !previousGamepad2.y){
+            breakfast = !breakfast;
+        }
 
-
-
-
+        if(breakfast){
+            budget.setPosition(0);
+        }
+        else{
+            budget.setPosition(1);
+        }
     }
     public void runPivot(){
 
         PIDController controller;
-        double p1 = 0.009, i1 = 0.001, d1 = 0.0005;
+        double p1 = 0.05, i1 = 0.001, d1 = 0.00003;
+        int armPos = pivot.getCurrentPosition();
+        double f1 = -0.04;
 
-        double f1 = 0.185;
-
-        int target1 = 425;
+        int target1 = armPos;
         controller = new PIDController(p1,i1,d1);
         double ticks_in_degrees = 1440/180;
 
         controller.setPID(p1,i1,d1);
-        int armPos = pivot.getCurrentPosition();
+
+        double pid = controller.calculate(armPos, target1);
+        double ff = Math.cos(Math.toRadians(target1/ticks_in_degrees)) * f1;
+
+        double power = pid + ff;
+        if(gamepad2.left_stick_y <= 1.0 && gamepad2.left_stick_y != 0.0|| gamepad2.left_stick_y >= -1.0 && gamepad2.left_stick_y != 0){
+            power = gamepad2.left_stick_y * 0.5;
+            target1 = armPos;
+        }
+//        if (pivot.getCurrentPosition() < 60) {
+//            f1 = 0.15;
+//        } else if (pivot.getCurrentPosition() > 60 && pivot.getCurrentPosition() < 100) {
+//            f1 = 0.0001;
+//
+//        }else if (pivot.getCurrentPosition() > 60) {
+//            f1 = -0.15;
+//        }
+        if(pivot.getCurrentPosition() < -240 || pivot.getCurrentPosition() >-240){
+            f *=-1;
+        }
+
+
+
+        pivot.setPower(power);
+    }
+    public void runSlides(){
+        PIDController controller;
+        double p1 = 0.006, i1 = 0.01, d1 = 0.00005;
+
+        double f1 = 0.005;
+        int armPos = slideLeft.getCurrentPosition();
+        int target1 = armPos;
+        controller = new PIDController(p1,i1,d1);
+        double ticks_in_degrees = 1440/180;
+
+        controller.setPID(p1,i1,d1);
+
         double pid = controller.calculate(armPos, target1);
         double ff = Math.cos(Math.toRadians(target1/ticks_in_degrees)) * f1;
 
         double power = pid + ff;
         if(gamepad2.right_stick_y <= 1.0 && gamepad2.right_stick_y != 0.0|| gamepad2.right_stick_y >= -1.0 && gamepad2.right_stick_y != 0){
             power = gamepad2.right_stick_y * 0.5;
-            target1 = armPos;
-        }
-
-        pivot.setPower(power);
-    }
-    public void runSlides(){
-
-        PIDController controller;
-        double p1 = 0.006, i1 = 0.01, d1 = 0.00005;
-
-        double f1 = 0.005;
-
-        int target1 = -425;
-        controller = new PIDController(p1,i1,d1);
-        double ticks_in_degrees = 1440/180;
-
-        controller.setPID(p1,i1,d1);
-        int armPos = slideLeft.getCurrentPosition();
-        double pid = controller.calculate(armPos, target1);
-        double ff = Math.cos(Math.toRadians(target1/ticks_in_degrees)) * f1;
-
-        double power = pid + ff;
-        if(gamepad2.right_stick_y <= 1.0 && gamepad2.right_stick_y != 0.0|| gamepad2.right_stick_y >= -1.0 && gamepad2.right_stick_y != 0){
-            power = gamepad2.right_stick_x * 0.5;
             target1 = armPos;
         }
 

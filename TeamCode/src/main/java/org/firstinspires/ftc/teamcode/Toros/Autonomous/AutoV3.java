@@ -5,32 +5,36 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.InstantFunction;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.RR.MecanumDrive;
 @Config
 @Autonomous(name = "AUTOV3")
 public class AutoV3 extends LinearOpMode {
+    private int target1 = 0;
     public class Lift {
-        private DcMotorEx slideLeft, slideRight;
-        private int target1 = 0;
+        private DcMotorEx slideLeft, slideRight,pivot;
 
         public Lift(HardwareMap hardwareMap){
             slideLeft = hardwareMap.get(DcMotorEx.class,"slideLeft");
             slideRight = hardwareMap.get(DcMotorEx.class,"slideRight");
-
+            pivot = hardwareMap.get(DcMotorEx.class,"pivot");
             slideLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             slideRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             slideLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -43,25 +47,17 @@ public class AutoV3 extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 if(!inited){
-                    slideLeft.setPower(-1);
-                    slideRight.setPower(-1);
+                    pivot.setPower(0.2);
                     inited = true;
                 }
-                int pos = slideLeft.getCurrentPosition();
-                telemetryPacket.put("lift pos",pos);
-                if(slideLeft.getCurrentPosition() > -1000){
-                    return true;
-                }
-                else {
-                    slideLeft.setPower(0);
-                    slideRight.setPower(0);
-                    return false;
-                }
+                ElapsedTime timer = new ElapsedTime();
+                return timer.seconds() == 3;
             }
         }
         public Action liftUp(){
             return new LiftUp();
         }
+
 
        public class PIDLift implements Action{
             boolean runPID = true;
@@ -93,27 +89,20 @@ public class AutoV3 extends LinearOpMode {
        public Action armLift(){
             return new PIDLift();
        }
-       public class changeTarget implements Action{
-            public changeTarget(int target){
-                target1 = target;
-            }
-
-           @Override
-           public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-               return false;
-           }
-       }
+       public Action changetarget (int target){
+            return new InstantAction(() -> target1 = target);
+        }
 
     }
 
 
     public class Claw{
         private Servo specClaw;
-        private CRServo sampClaw;
+
         public Claw(HardwareMap hardwareMap){
             specClaw = hardwareMap.get(Servo.class,"specClaw");
-            sampClaw = hardwareMap.get(CRServo.class,"sampClaw");
 
+            specClaw.setPosition(1);
 
         }
         public class OpenFingers implements Action{
@@ -136,29 +125,6 @@ public class AutoV3 extends LinearOpMode {
         }
         public Action closeFingers(){
             return new closeFingers();
-        }
-
-        public class sampOut implements Action{
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-                sampClaw.setPower(0);
-                return false;
-            }
-        }
-        public Action openWrist(){
-            return new sampOut();
-        }
-        public class sampIn implements Action{
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-                sampClaw.setPower(1);
-                return false;
-            }
-        }
-        public Action closeWrist(){
-            return new sampIn();
         }
 
     }
@@ -185,61 +151,77 @@ public class AutoV3 extends LinearOpMode {
 //        Action tab1A = tab1.build();
 
         Action traj1 = drive.actionBuilder(initialPose)
-                .strafeTo(new Vector2d(9,-35))
+                .strafeTo(new Vector2d(9,-30))
                 .build();
         Action traj2 = drive.actionBuilder(new Pose2d(9,-35,Math.toRadians(90)))
-                .strafeTo(new Vector2d(30, -38))
+                .strafeToLinearHeading(new Vector2d(30, -38), Math.toRadians(90))
+                .turnTo(Math.toRadians(270))
                 //.strafeTo(new Vector2d(40, -12))
                 .splineToConstantHeading(new Vector2d(49,-18), Math.toRadians(0))
                 .strafeTo(new Vector2d(49,-60))//push spec 3
+                .strafeTo(new Vector2d(49, -59))
                 .build();
         //pick up spec 2
-        Action traj3 = drive.actionBuilder(new Pose2d(49,-60,Math.toRadians(90)))
-                .strafeTo(new Vector2d(3, -38))
+        Action traj3 = drive.actionBuilder(new Pose2d(49,-60,Math.toRadians(270)))
+                //.strafeToLinearHeading(new Vector2d(3, -38), Math.toRadians(90))
+                .strafeTo(new Vector2d(20, -38))
+                .turnTo(Math.toRadians(90))
+                .strafeTo(new Vector2d(3, -30))
                 .build();
         //Hang spec 2
         Action traj4 = drive.actionBuilder(new Pose2d(3,-38,Math.toRadians(90)))
-                .strafeTo(new Vector2d(30,-65))
+                .strafeToLinearHeading(new Vector2d(30,-65), Math.toRadians(270))
                 .splineToConstantHeading(new Vector2d(60,-35), Math.toRadians(270))
                 .strafeTo(new Vector2d(55, -60))//push spec 4
                 .build();
         //pick up spec 3
         Action traj5 = drive.actionBuilder(new Pose2d(55,-60,Math.toRadians(90)))
-                .strafeTo(new Vector2d(0, -35))
+                .strafeToLinearHeading(new Vector2d(0, -35), Math.toRadians(90))
+                //.stopAndAdd(lift.changetarget(1))
                 .build();
         //Hang spec 3
         Action traj6 = drive.actionBuilder(new Pose2d(0,-35,Math.toRadians(90)))
-                .strafeTo(new Vector2d(20,-38))
+                .strafeToLinearHeading(new Vector2d(20,-38), Math.toRadians(270))
                 .splineToConstantHeading(new Vector2d(62,-15), Math.toRadians(270))
                 .strafeTo(new Vector2d(62, -60))//push spec 5
                 .build();
         Action traj7 = drive.actionBuilder(new Pose2d(62,-60,Math.toRadians(270)))
-                .strafeTo(new Vector2d(-3, -35))
+                .strafeToLinearHeading(new Vector2d(-3, -35), Math.toRadians(90))
+                .build();
+        Action park = drive.actionBuilder(new Pose2d(9,-61,Math.toRadians(90)))
+                .strafeTo(new Vector2d(65,-65))
                 .build();
         //Pick up spec 4
 
         waitForStart();
         Actions.runBlocking(
-                //new ParallelAction(
-                        //lift.pidAction(-425),
+                new ParallelAction(
+                        lift.armLift(),
                         new SequentialAction(
-                                claw.closeWrist()
-                                //traj1,
+                                claw.closeFingers(),
+                                lift.changetarget(-1800),
+                                traj1,
+                                new SleepAction(1),
+                                lift.changetarget(-100),
+                                //new SleepAction(3),
+                                new SleepAction(1),
+                                claw.openFingers(),
+                                park
                                 //traj2,
-                                //traj3,
+                                //traj3
                                 //traj4,
-                              //  traj5,
-                            //    traj6,
-                          //      traj7
+                                //traj5,
+                                //traj6,
+                                //traj7
 //
 //                       // tab1A,
 //                        //lift.changeTarget(-250),
 //                        //claw.openFingers(),
 //                        //trajectoryActionCloseOut,
 //                       // lift.changeTarget(0)
-//                )
+                )
 //
-                        //)
+
                 )
         );
 

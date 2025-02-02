@@ -5,12 +5,15 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.hardware.PwmControl;
 
 import org.firstinspires.ftc.teamcode.Toros.Util.ArmClass;
 import org.firstinspires.ftc.teamcode.Toros.Util.BatteryClass;
@@ -24,7 +27,7 @@ public class TestDrive extends LinearOpMode {
      **/
 
     private PIDController controller;
-    private boolean Rtoggle,Xtoggle,directControl;
+    private boolean Rtoggle,Xtoggle,breakfast;
     //
     public static double p = 0.004, i = 0.001, d = 0.0005;
     public static double f = 0.195;
@@ -39,8 +42,9 @@ public class TestDrive extends LinearOpMode {
     //Declares the Variables for all of our motors and servos
     private DcMotor FrontLeftMotor,BackLeftMotor,FrontRightMotor,BackRightMotor; //Motors
     private  DcMotorEx pivot, slideLeft, slideRight;
+    private Servo specClaw, budget;
+    private CRServoImplEx sampClaw;
     private VoltageSensor volt_prime;
-    private Servo fingers,wrist,elbow;
     Gamepad currentGamepad1 = new Gamepad(), previousGamepad1 = new Gamepad(); //Gamepads used to make toggles
     Gamepad currentGamepad2 = new Gamepad(), previousGamepad2 = new Gamepad();
     @Override
@@ -94,16 +98,17 @@ public class TestDrive extends LinearOpMode {
         pivot = hardwareMap.get(DcMotorEx.class,"pivot");
         slideRight = hardwareMap.get(DcMotorEx.class,"slideRight");
         slideLeft = hardwareMap.get(DcMotorEx.class,"slideLeft");
-        fingers = hardwareMap.get(Servo.class,"fingers");
-        wrist = hardwareMap.get(Servo.class,"wrist");
-        elbow = hardwareMap.get(Servo.class,"elbow");
+        sampClaw = hardwareMap.get(CRServoImplEx.class,"slurp");
+        specClaw = hardwareMap.get(Servo.class,"specClaw");
+        budget = hardwareMap.get(Servo.class,"brisket");
+
 
         slideRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slideLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        slideLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         slideRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         slideLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        slideLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         FrontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         BackRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         //Zero Power Behaviors
@@ -111,18 +116,19 @@ public class TestDrive extends LinearOpMode {
         BackLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         FrontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         BackRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         volt_prime = hardwareMap.get(VoltageSensor.class, "Control Hub");
 
-        fingers.setPosition(1);
-        wrist.setPosition(0);
-        elbow.setPosition(0);
+
     }
 
     private void initTelemetry () {
 
         BatteryClass battery = new BatteryClass(hardwareMap);
+        telemetry.addData("Slide",slideLeft.getCurrentPosition());
         telemetry.addData("Battery", battery.getBatteryPercent());
-        telemetry.addData("Direct Control",directControl);
+        telemetry.addData("Direct Control",breakfast);
+        telemetry.addData("Garbage",sampClaw.getPower());
         telemetry.addData("Toggle",Xtoggle);
         telemetry.addData("Toggle",Rtoggle);
         telemetry.update();
@@ -211,81 +217,30 @@ public class TestDrive extends LinearOpMode {
         BackRightMotor.setPower(br);
     }
     private void claw(){
-
-
-        if(currentGamepad2.left_stick_button && !previousGamepad2.left_stick_button){
-            directControl = !directControl;
+        if(gamepad2.left_trigger > 0){
+            sampClaw.setPower(1);
+        }
+        if(gamepad2.right_trigger > 0){
+            sampClaw.setPower(-1);
+        }
+        if(gamepad2.b){
+            sampClaw.setPwmDisable();
+        }
+        if(gamepad2.left_bumper){
+            specClaw.setPosition(0);
+        }
+        if(gamepad2.right_bumper){
+            specClaw.setPosition(1);
+        }
+        if(currentGamepad2.y && !previousGamepad2.y){
+            breakfast = !breakfast;
         }
 
-
-
-        if(directControl){
-            if (gamepad2.left_bumper) {
-                fingers.setPosition(0);
-            } else if (gamepad2.right_bumper) {
-                fingers.setPosition(1);
-            }//keep finger control always
-
-            if (gamepad2.b) {
-                wrist.setPosition(0);
-            } else if (gamepad2.y) {
-                wrist.setPosition(1);
-            } else if (gamepad2.x) {
-                wrist.setPosition(0.5);
-
-            }
-
-            if (gamepad2.dpad_down) {
-                elbow.setPosition(1);
-            } else if (gamepad2.dpad_up) {
-                elbow.setPosition(0);
-            }
-
+        if(breakfast){
+            budget.setPosition(0);
         }
-        else {
-            if (gamepad2.left_bumper) {
-                fingers.setPosition(0);
-            } else if (gamepad2.right_bumper) {
-                fingers.setPosition(1);
-            }
-            if (gamepad2.b) {
-                wrist.setPosition(0);
-            } else if (gamepad2.x) {
-                wrist.setPosition(0.5);
-
-            }
-            //Set Positions---------------------------------------------------------------------------------
-
-            //Specimens
-            if (gamepad2.dpad_down) {
-                fingers.setPosition(1);
-                wrist.setPosition(0);
-                //arm.runSlides(0);
-                //arm.runPivot(0);
-                fingers.setPosition(0);
-                elbow.setPosition(1);
-            } else if (gamepad2.dpad_up) {
-                fingers.setPosition(1);
-                elbow.setPosition(0.5);
-                wrist.setPosition(1);
-                //arm.runSlides(500);
-                //arm.runPivot(500);
-            }
-            //Samples
-            if (gamepad2.a) {
-                fingers.setPosition(1);
-                wrist.setPosition(0);
-                fingers.setPosition(0);
-                //arm.runSlides(0);
-                //arm.runPivot(1000);
-                elbow.setPosition(0.3);
-            } else if (gamepad2.y){
-                fingers.setPosition(1);
-                elbow.setPosition(0.5);
-                wrist.setPosition(0);
-                //arm.runPivot(500);
-                //arm.runSlides(1000);
-            }
+        else{
+            budget.setPosition(1);
         }
 
 
