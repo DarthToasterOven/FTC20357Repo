@@ -11,18 +11,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class Slides {
       DcMotorEx slideLeft, slideRight;
-
-    public static double p = 0.004, i = 0.001, d = 0.0005;
-    public static double f = 0.195;
-
-//     P is for proportional which will be proportionate to the error this causes the arm to go up for us
-//     I is for integral which integrates past values of error seeking to reduced the residual error by adding control and eliminate the error which gets us closer to the target point
-//     D is for derivative which best estimates the trend of the error based on the rate of change to reduced the effect to dampen it to not overshoot
-//     F is for feedforward which accounts for things more external and prevents disturbances in our use case showing gravity who is boss
-
-    public static int target = 50;
-    private final double ticks_in_degrees = 1440 / 180; // Ticks of the tetrix 60:1 motor in degrees (divided by 180)
-    //Declares the Variables for all of our motors and servos
     private Gamepad gamepad2;
 
     public Slides (HardwareMap hardwareMap, Gamepad gamepad){
@@ -35,10 +23,17 @@ public class Slides {
 
         slideRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         slideLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //Resets the slides encoder values to zero
         slideLeft.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public void runSlides(){
+        /// Controller and coefficients for PID which determine how the motor will behave which we get from tuning
+        //This is then done using the arm position, ticks per degree of the motor and the calculations from the controller
+        //P (proportional) - proportionate the motor based on the target,
+        // I (integral) - integrates the error in order to get rid of smaller steady state errors over time,
+        // D (derivative) -considers the rate of change and dampens oscillations which in practice makes it raise slower so it doesn't miss the target
+        // F (Feedfoward) - is added to compensate for gravity which is later dictated by the angle that our arm is at
 
         PIDController controller;
         double p1 = 0.006, i1 = 0.01, d1 = 0.00005;
@@ -50,12 +45,15 @@ public class Slides {
         double ticks_in_degrees = 1440/180;
 
         controller.setPID(p1,i1,d1);
-
+        //The calculation done here are based off a equation I can't put in here but I do suggest looking up for better understanding
+        //The feedfoward part or ff is done by using the cos of target/ticks in radians then multiplying it by our f coefficient
         double pid = controller.calculate(armPos, target1);
         double ff = Math.cos(Math.toRadians(target1/ticks_in_degrees)) * f1;
 
         double power = pid + ff;
+        //Allows for joy stick control
         if(gamepad2.right_stick_y <= 1.0 && gamepad2.right_stick_y != 0.0|| gamepad2.right_stick_y >= -1.0 && gamepad2.right_stick_y != 0){
+            // Test this condition later - if(gamepad2.left_stick_y != 0.0) - Again this condition above ^ is terrible but works
             power = gamepad2.right_stick_y * 0.5;
             target1 = armPos;
         }

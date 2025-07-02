@@ -13,7 +13,7 @@ public class BatteryClass {
     public double getBatteryPercent(){
         double volts = voltPrime.getVoltage();
         double battery = 0;
-        if(volts > 12.00){
+        if(volts >= 12.00){
             battery = 100;
         } else if (volts <= 12) {
             battery = volts / 12.00 * 100;

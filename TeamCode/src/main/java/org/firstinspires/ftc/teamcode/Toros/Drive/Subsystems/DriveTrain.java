@@ -7,56 +7,67 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 
-//DriveTrain class controls drive motors
 public class DriveTrain {
 
-    private DcMotor FrontLeftMotor,BackLeftMotor,FrontRightMotor,BackRightMotor;
-    private boolean Rtoggle,Xtoggle;
-    Gamepad currentGamepad1 = new Gamepad(), previousGamepad1 = new Gamepad();
-    Gamepad gamepad1;
+    private DcMotor FrontLeftMotor,BackLeftMotor,FrontRightMotor,BackRightMotor; //Motors
+    private boolean Rtoggle,Xtoggle; // Toggles for turning down the speed of the robot
+    Gamepad currentGamepad1 = new Gamepad(), previousGamepad1 = new Gamepad(); //fragment of the toggles. needed just in case
+    Gamepad gamepad1; // the gamepad which we intialize when we construct the class in the actual drive program
     public DriveTrain(HardwareMap hardwareMap,Gamepad gamepad){
         FrontLeftMotor = hardwareMap.get(DcMotor.class, "fl");
         BackLeftMotor = hardwareMap.get(DcMotor.class, "bl");
         FrontRightMotor = hardwareMap.get(DcMotor.class, "fr");
         BackRightMotor = hardwareMap.get(DcMotor.class, "br");
 
+        // Sets the zero power behaviors which when it stops will resist force on it causing it to stop faster
         FrontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         BackLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         FrontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         BackRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        //These two motors need to be in reverse in order for correct movement
         FrontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         BackRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        //creates our gamepad object in order to use controls
         this.gamepad1 = gamepad;
 
     }
 
     public void drive (){
-        previousGamepad1.copy(currentGamepad1);
         currentGamepad1.copy(gamepad1);
+        //previousGamepad1.copy(currentGamepad1)
 
+        //Our toggle to slow down either rotationally or just in the x or y directions
+        if(currentGamepad1.xWasPressed()){
+            Xtoggle = !Xtoggle;
+        }
+        if(currentGamepad1.bWasPressed()){
+            Rtoggle = !Rtoggle;
+        }
+
+/*
         if(currentGamepad1.x && !previousGamepad1.x){
             Xtoggle = !Xtoggle;
         }
         if(currentGamepad1.b && !previousGamepad1.b){
             Rtoggle = !Rtoggle;
         }
+*/
 
-
-
-
-
-
-        double x = gamepad1.left_stick_x;
+        //Taking our gamepad inputs
+        double x = gamepad1.left_stick_x * 1.1; // the *1.1 counteracts imperfect strafing
         double y = -gamepad1.left_stick_y;
         double turn = gamepad1.right_stick_x;
 
+        //Toggles just slow down the speed to 3/4 of the robots speed/power
         if(Xtoggle){
             x *= 0.75;
+            y *= 0.75;
         }
         else{
             x*=1;
+            y*=1;
         }
         if(Rtoggle){
             turn *= 0.75;
@@ -69,38 +80,18 @@ public class DriveTrain {
 
 
         //Drive variables used in the calculations to run our motors
-        double theta = Math.atan2(y, x);
-        double power = Math.hypot(x, y);
-        double sin = Math.sin(theta - Math.PI / 4);
-        double cos = Math.cos(theta - Math.PI / 4);
-        double max = Math.max(Math.abs(sin), Math.abs(cos));
-
-        /**
-         In basics this is taking the x and y of the left stick making them into an angle
-         with the power being the hypot which is the square root of the sum of squares of the inputs
-         more info here https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/hypot
-         then takes the sin and cos of the angle making sure to convert to radians. It then creates a max
-         using the absolute value of the sin and cos.
-
-         The idea is that where you are going is angle theta with each wheel being a vector and when combined make the target direction when rotated 45 degrees
-
-         Found on YT www.youtube.com/watch?v=gnSW2QpkGXQ which is a video about coding for mecanum drive wheels
-         */
-
-
+        double theta = Math.atan2(y, x); //Calculates the angle in radians of the joystick using y and x. It also uses the full 2pi radians so 0.5 ,0.5 = 0.785
+        double power = Math.hypot(x, y); // takes the hypotenuse of those angles so 0.5 ,0.5 = 0.7
+        double sin = Math.sin(theta - Math.PI / 4); // Sin of the angle in radians
+        double cos = Math.cos(theta - Math.PI / 4); // cos of the angle in radians
+        double max = Math.max(Math.abs(sin), Math.abs(cos)); //a max that scales the motors so that they are at max power
         //Calculations for our drive motors
-
         double fl = (power * cos / max + turn);
         double fr = (power * sin / max - turn);
         double bl = (power * sin / max + turn);
         double br = (power * cos / max - turn);
 
-        /**
-         In continuation the power is then calculated with the angles multiplied by the sin or cos divided the difference or sum of the max and turn
-         */
-
-        //If statement below is to make sure one motor does not exceed the power limit making it scale down
-
+        //If the power were to exceed 1 then it scales down until they don't exceed 1
         if ((power + Math.abs(turn)) > 1) {
             fl /= power + Math.abs(turn);
             fr /= power + Math.abs(turn);
@@ -116,6 +107,8 @@ public class DriveTrain {
         BackLeftMotor.setPower(bl);
         BackRightMotor.setPower(br);
     }
+
+    //Any getter methods that we need in order for telemetry or other use
     public boolean getXToggle(){
         return Xtoggle;
     }
