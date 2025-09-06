@@ -29,8 +29,6 @@ public class MainDrive extends LinearOpMode {
         // runs all of the systems
         while (opModeIsActive()){
             drivetrain.drive();
-            slides.runSlides();
-            pivot.runPivot();
             intake.runClaw();
             initTelemetry();
         }
