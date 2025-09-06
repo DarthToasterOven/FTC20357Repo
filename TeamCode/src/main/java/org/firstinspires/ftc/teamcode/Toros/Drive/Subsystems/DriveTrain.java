@@ -29,6 +29,11 @@ public class DriveTrain {
         FrontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         BackRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        FrontLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        FrontRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        BackLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        BackRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
         //creates our gamepad object in order to use controls
         this.gamepad1 = gamepad;
 

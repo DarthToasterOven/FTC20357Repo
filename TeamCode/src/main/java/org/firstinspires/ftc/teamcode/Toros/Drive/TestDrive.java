@@ -16,7 +16,6 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.hardware.PwmControl;
 
 import org.firstinspires.ftc.teamcode.Toros.Util.ArmClass;
-import org.firstinspires.ftc.teamcode.Toros.Util.BatteryClass;
 
 @TeleOp(name = "TestDrive")
 public class TestDrive extends LinearOpMode {
@@ -124,9 +123,7 @@ public class TestDrive extends LinearOpMode {
 
     private void initTelemetry () {
 
-        BatteryClass battery = new BatteryClass(hardwareMap);
         telemetry.addData("Slide",slideLeft.getCurrentPosition());
-        telemetry.addData("Battery", battery.getBatteryPercent());
         telemetry.addData("Direct Control",breakfast);
         telemetry.addData("Garbage",sampClaw.getPower());
         telemetry.addData("Toggle",Xtoggle);
