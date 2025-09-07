@@ -5,6 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.Intake;
+import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.IntakeV2;
+import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.Launcher;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.Pivot;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.Slides;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.BatteryClass;
@@ -22,14 +24,14 @@ public class MainDrive extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         //Constructs the systems and makes them objects allowing to use a method to run the system and allows for other methods to be used
         drivetrain = new DriveTrain(hardwareMap,gamepad1);
-        slides = new Slides(hardwareMap,gamepad2);
-        pivot = new Pivot(hardwareMap,gamepad2);
-        intake = new Intake(hardwareMap,gamepad2);
+        IntakeV2 intake = new IntakeV2(hardwareMap, gamepad2);
+        Launcher launcher = new Launcher(hardwareMap, gamepad2);
         waitForStart();
         // runs all of the systems
         while (opModeIsActive()){
             drivetrain.drive();
-            intake.runClaw();
+            intake.runIntake();
+            launcher.runLauncher();
             initTelemetry();
         }
     }
