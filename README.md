@@ -10,7 +10,7 @@
    
    The subsystems folder is modules that act as systems of the. They are just packages that we use in order to make changes quicker in our code
    
-   Autonomous just holds all of the autonmous code 
+   Autonomous just holds all of the autonomous code 
 
 ## Welcome!
 This GitHub repository contains the source code that is used to build an Android app to control a *FIRST* Tech Challenge competition robot.  To use this SDK, download/clone the entire project to your local computer.

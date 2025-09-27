@@ -11,10 +11,11 @@ public class testLaunch extends LinearOpMode {
 
     @Override
     public void runOpMode(){
-        L1 = hardwareMap.get(DcMotorEx.class,"top");
-        L2 = hardwareMap.get(DcMotorEx.class,"bottom");
+        L1 = hardwareMap.get(DcMotorEx.class,"launchLeft");
+        L2 = hardwareMap.get(DcMotorEx.class,"launchRight");
 
         L1.setDirection(DcMotorSimple.Direction.REVERSE);
+        waitForStart();
         if(opModeIsActive()){
             while (opModeIsActive()){
                 if(gamepad1.left_trigger > 0){

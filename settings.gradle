@@ -8,4 +8,4 @@ plugins {
 }
 include ':FtcRobotController'
 include ':TeamCode'
-include ':meepMeepTesting'
+include ':MeepMeepTesting'

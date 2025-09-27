@@ -22,6 +22,7 @@
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
 import com.qualcomm.hardware.digitalchickenlabs.OctoQuad;
+import com.qualcomm.hardware.digitalchickenlabs.OctoQuadImpl;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -133,7 +134,7 @@ public class SensorOctoQuad extends LinearOpMode {
         //
         // Since both calls take almost the same amount of time, and the actual channels may not end up
         // being sequential, we will read all of the encoder positions, and then pick out the ones we need.
-        int[] positions = octoquad.readAllPositions();
+        int[] positions = octoquad.readAllEncoderData().positions;
         posLeft  = positions[ODO_LEFT];
         posRight = positions[ODO_RIGHT];
         posPerp  = positions[ODO_PERP];
