@@ -67,15 +67,15 @@ public class DriveTrain {
 
         //Toggles just slow down the speed to 3/4 of the robots speed/power
         if(Xtoggle){
-            x *= 0.75;
-            y *= 0.75;
+            x *= 0.5;
+            y *= 0.5;
         }
         else{
             x*=1;
             y*=1;
         }
         if(Rtoggle){
-            turn *= 0.75;
+            turn *= 0.5;
         }
         else{
             turn*=1;
@@ -117,7 +117,7 @@ public class DriveTrain {
     public boolean getXToggle(){
         return Xtoggle;
     }
-    public boolean getYToggle(){
+    public boolean getRToggle(){
         return Rtoggle;
     }
 

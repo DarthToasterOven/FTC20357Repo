@@ -37,7 +37,7 @@ public class MainDrive extends LinearOpMode {
     //Telemetry which is good for debugging and seeing how we preform
     private void initTelemetry () {
         telemetry.addData("Toggle",drivetrain.getXToggle());
-        telemetry.addData("Toggle",drivetrain.getYToggle());
+        telemetry.addData("Toggle",drivetrain.getRToggle());
         telemetry.update();
     }
 }

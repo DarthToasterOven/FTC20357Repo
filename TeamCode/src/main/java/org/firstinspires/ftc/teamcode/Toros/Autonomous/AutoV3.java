@@ -27,6 +27,8 @@ import org.firstinspires.ftc.teamcode.RR.MecanumDrive;
 @Config
 @Autonomous(name = "AUTOV3")
 public class AutoV3 extends LinearOpMode {
+
+
     private int target1 = 0;
     public class Lift {
         private DcMotorEx slideLeft, slideRight,pivot;
