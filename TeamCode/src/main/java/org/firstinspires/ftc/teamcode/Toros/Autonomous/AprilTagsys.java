@@ -58,7 +58,7 @@ public class AprilTagsys {
 
         // Set the camera (webcam vs. built-in RC phone camera).
         if (USE_WEBCAM) {
-            builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+            builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam1"));
         } else {
             builder.setCamera(BuiltinCameraDirection.BACK);
         }
@@ -88,7 +88,7 @@ public class AprilTagsys {
 
     }
 
-    private void telemetryAprilTag() {
+    public void telemetryAprilTag() {
 
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         telemetry.addData("# AprilTags Detected", currentDetections.size());
@@ -114,7 +114,6 @@ public class AprilTagsys {
     }
 
     public void runAprilTags() {
-        telemetryAprilTag();
         if (gamepad1.dpad_down) {
             visionPortal.stopStreaming();
         } else if (gamepad1.dpad_up) {

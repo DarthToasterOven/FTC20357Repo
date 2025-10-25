@@ -5,6 +5,9 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -61,22 +64,37 @@ public class Auto2025 extends LinearOpMode {
 
 
         initAprilTag();
-        Pose2d initialPose = new Pose2d(0,0,Math.toRadians(0));
+        telemetryAprilTag();
+        Pose2d initialPose = new Pose2d(-61.25,-37.5,Math.toRadians(270));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
 
         // Wait for the DS start button to be touched.
         telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
         telemetry.addData(">", "Touch START to start OpMode");
         telemetry.update();
+
         waitForStart();
-//        Actions.runBlocking(
-//
-//        );
+
+        Action tab1 = drive.actionBuilder(initialPose)
+        .strafeToLinearHeading(new Vector2d(-34,-12),Math.toRadians(235))
+                .waitSeconds(2.5)
+                .strafeToLinearHeading(new Vector2d(-11.5,-28),Math.toRadians(90))
+                .strafeTo(new Vector2d(-11.5,-53))
+                .strafeToLinearHeading(new Vector2d(-34,-12), Math.toRadians(235))
+                .waitSeconds(2.5)
+                .strafeToLinearHeading(new Vector2d(12.25,-28),Math.toRadians(90))
+                .strafeTo(new Vector2d(12.25,-53))
+                .strafeToLinearHeading(new Vector2d(-34,-12), Math.toRadians(235))
+                .waitSeconds(2.5)
+                .strafeToLinearHeading(new Vector2d(35.25,-12),Math.toRadians(90))
+                .strafeTo(new Vector2d(35.25,-53))
+                        .build();
+        Actions.runBlocking(
+                new SequentialAction(
+                tab1
+                )
+        );
         if (opModeIsActive()) {
-
-
-
-
 
 
 
@@ -189,9 +207,25 @@ public class Auto2025 extends LinearOpMode {
                 telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
                 telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
                 telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
+                if(detection.id == 21){
+                    //turn table swap to position of green
+                    //swap to purple
+                    //swap to purple
+                } else if (detection.id == 22) {
+                    //swap to purple
+                    //swap to green
+                    //swap to purple
+                }
+                else if (detection.id == 23){
+                    //swap to purple
+                    //swap to purple
+                    //swap to green
+                }
             } else {
                 telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
-                telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
+                telemetry.addLine(String.format("Center %6.0f %6.0f (pixels)", detection.center.x, detection.center.y));
+
+
             }
         }   // end for() loop
 
@@ -199,6 +233,7 @@ public class Auto2025 extends LinearOpMode {
         telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
         telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
         telemetry.addLine("RBE = Range, Bearing & Elevation");
+
 
     }   // end method telemetryAprilTag()
 

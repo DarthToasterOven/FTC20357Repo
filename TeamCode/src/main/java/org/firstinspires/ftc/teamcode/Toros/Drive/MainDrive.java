@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Toros.Drive;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.Toros.Autonomous.AprilTagsys;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.IntakeV2;
@@ -25,12 +26,16 @@ public class MainDrive extends LinearOpMode {
         drivetrain = new DriveTrain(hardwareMap,gamepad1);
         IntakeV2 intake = new IntakeV2(hardwareMap, gamepad2);
         Launcher launcher = new Launcher(hardwareMap, gamepad2);
+        AprilTagsys aprilTagsys = new AprilTagsys(hardwareMap,gamepad2);
+
         waitForStart();
         // runs all of the systems
         while (opModeIsActive()){
             drivetrain.drive();
             intake.runIntake();
             launcher.runLauncher();
+            aprilTagsys.runAprilTags();
+            aprilTagsys.telemetryAprilTag();
             initTelemetry();
         }
     }
