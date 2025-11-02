@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
@@ -22,22 +23,27 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Autonomous(name = "Auto2025")
 public class Auto2025 extends LinearOpMode {
     private DcMotor launchMotor;
-    public class Launcher{
-        public Launcher(HardwareMap hardwareMap){
-            launchMotor = hardwareMap.get(DcMotor.class, "launchLeft");
+    private DcMotor intake;
+
+    public class Launcher {
+        public Launcher(HardwareMap hardwareMap) {
+            launchMotor = hardwareMap.get(DcMotor.class, "launch");
             launchMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
     }
-    public class shootBall implements Action {
+
+    public class launcherAction implements Action {
         private boolean init = false;
+
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-            if(!init){
+            if (!init) {
                 launchMotor.setPower(1);
                 init = true;
             }
@@ -45,8 +51,58 @@ public class Auto2025 extends LinearOpMode {
             return timer.seconds() == 3;
         }
     }
-    public Action shootBall() { return new shootBall(); }
 
+
+    public class Intake {
+        public Intake(HardwareMap hardwareMap) {
+            intake = hardwareMap.get(DcMotor.class, "intake");
+            intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            //add color sensor
+        }
+    }
+
+    public class intakeAction implements Action {
+        private boolean init = false;
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            if (!init) {
+                intake.setPower(1);
+                init = true;
+            }
+            ElapsedTime timer = new ElapsedTime();
+            return timer.seconds() == 6;
+        }
+    }
+
+    public class scan implements Action {
+        private boolean init = false;
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            if (!init) {
+                initAprilTag();
+                telemetryAprilTag();
+            }
+            return motif.size() == 3;
+        }
+    }
+
+    public class turnTable implements Action{
+        private boolean init = false;
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            if(!init){
+                // go to position at called
+            }
+            return false;
+        }
+    }
+
+    public Action fireBall() { return new launcherAction(); }
+    public Action takeBall() { return new intakeAction(); }
+    public Action scanMotif(){return new scan();}
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 
     /**
@@ -59,13 +115,14 @@ public class Auto2025 extends LinearOpMode {
      */
     private VisionPortal visionPortal;
 
+    ArrayList<String> stored = new ArrayList<>();
+    ArrayList<String> motif = new ArrayList<>();
     @Override
     public void runOpMode() {
 
 
         initAprilTag();
-        telemetryAprilTag();
-        Pose2d initialPose = new Pose2d(-61.25,-37.5,Math.toRadians(270));
+        Pose2d initialPose = new Pose2d(-48, 50, Math.toRadians(-233));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
 
         // Wait for the DS start button to be touched.
@@ -76,29 +133,30 @@ public class Auto2025 extends LinearOpMode {
         waitForStart();
 
         Action tab1 = drive.actionBuilder(initialPose)
-        .strafeToLinearHeading(new Vector2d(-34,-12),Math.toRadians(235))
-                .waitSeconds(2.5)
+                .strafeToLinearHeading(new Vector2d(-52,-0),Math.toRadians(250))//change to 180 once april tag and color sensing system works
+//                .stopAndAdd(scanMotif())
+//                .turn(Math.toRadians(70))
+                .stopAndAdd(fireBall())
                 .strafeToLinearHeading(new Vector2d(-11.5,-28),Math.toRadians(90))
-                .strafeTo(new Vector2d(-11.5,-53))
-                .strafeToLinearHeading(new Vector2d(-34,-12), Math.toRadians(235))
-                .waitSeconds(2.5)
-                .strafeToLinearHeading(new Vector2d(12.25,-28),Math.toRadians(90))
-                .strafeTo(new Vector2d(12.25,-53))
-                .strafeToLinearHeading(new Vector2d(-34,-12), Math.toRadians(235))
-                .waitSeconds(2.5)
-                .strafeToLinearHeading(new Vector2d(35.25,-12),Math.toRadians(90))
-                .strafeTo(new Vector2d(35.25,-53))
                         .build();
-        Actions.runBlocking(
-                new SequentialAction(
-                tab1
-                )
-        );
+        Action tab2 = drive.actionBuilder(drive.localizer.getPose())//set var constraint later
+                .strafeTo(new Vector2d(-11.5,-53))
+                .build();
+        Action tab3 = drive.actionBuilder(drive.localizer.getPose())
+                .strafeToLinearHeading(new Vector2d(-34,-12), Math.toRadians(235))
+                .stopAndAdd(fireBall())
+                .build();
         if (opModeIsActive()) {
-
-
-
-
+            Actions.runBlocking(
+                    new SequentialAction(
+                            tab1,
+                            new ParallelAction(
+                                    takeBall()
+                            ),
+                            tab2,
+                            tab3
+                    )
+            );
             while (opModeIsActive()) {
 
                 telemetryAprilTag();
@@ -112,6 +170,7 @@ public class Auto2025 extends LinearOpMode {
                 } else if (gamepad1.dpad_up) {
                     visionPortal.resumeStreaming();
                 }
+
 
                 // Share the CPU.
                 sleep(20);
@@ -207,25 +266,34 @@ public class Auto2025 extends LinearOpMode {
                 telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
                 telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
                 telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
-                if(detection.id == 21){
-                    //turn table swap to position of green
-                    //swap to purple
-                    //swap to purple
-                } else if (detection.id == 22) {
-                    //swap to purple
-                    //swap to green
-                    //swap to purple
-                }
-                else if (detection.id == 23){
-                    //swap to purple
-                    //swap to purple
-                    //swap to green
-                }
+
             } else {
                 telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
                 telemetry.addLine(String.format("Center %6.0f %6.0f (pixels)", detection.center.x, detection.center.y));
 
-
+            }
+            if (detection.id == 21){
+                motif.add("g");
+                motif.add("p");
+                motif.add("p");
+                //turn table swap to position of green
+                //swap to purple
+                //swap to purple
+            } else if (detection.id == 22) {
+                motif.add("p");
+                motif.add("g");
+                motif.add("p");
+                //swap to purple
+                //swap to green
+                //swap to purple
+            }
+            else if (detection.id == 23){
+                motif.add("p");
+                motif.add("p");
+                motif.add("g");
+                //swap to purple
+                //swap to purple
+                //swap to green
             }
         }   // end for() loop
 

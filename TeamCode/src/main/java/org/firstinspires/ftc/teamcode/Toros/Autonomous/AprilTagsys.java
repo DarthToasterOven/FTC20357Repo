@@ -17,7 +17,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.List;
 
 
-public class AprilTagsys {
+public class AprilTagsys{
     private static final boolean USE_WEBCAM = true;
 
     private AprilTagProcessor aprilTag;
