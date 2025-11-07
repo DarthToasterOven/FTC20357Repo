@@ -64,10 +64,10 @@ public class DriveTrain {
         //previousGamepad1.copy(currentGamepad1)
 
         //Our toggle to slow down either rotationally or just in the x or y directions
-        if(currentGamepad1.xWasPressed()){
+        if(currentGamepad1.dpadLeftWasPressed()){
             Xtoggle = !Xtoggle;
         }
-        if(currentGamepad1.bWasPressed()){
+        if(currentGamepad1.dpadRightWasPressed()){
             Rtoggle = !Rtoggle;
         }
 
@@ -112,6 +112,10 @@ public class DriveTrain {
         double backLeftPower = (rotY - rotX + turn) / denominator;
         double frontRightPower = (rotY - rotX - turn) / denominator;
         double backRightPower = (rotY + rotX - turn) / denominator;
+
+        if(gamepad1.options){
+            imu.resetYaw();
+        }
 
         FrontLeftMotor.setPower(frontLeftPower);
         BackLeftMotor.setPower(backLeftPower);

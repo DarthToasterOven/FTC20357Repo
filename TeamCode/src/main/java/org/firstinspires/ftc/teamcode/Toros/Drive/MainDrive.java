@@ -17,25 +17,21 @@ public class MainDrive extends LinearOpMode {
     // In our drive class we broke it down into subsystems to make it easier to read
     // All that needs to be done in the code is construct the subsystems and run their systems with a method
     DriveTrain drivetrain;
-
-    Intake intake;
-
+    IntakeV2 intake;
+    Launcher launcher;
     @Override
     public void runOpMode() throws InterruptedException {
         //Constructs the systems and makes them objects allowing to use a method to run the system and allows for other methods to be used
         drivetrain = new DriveTrain(hardwareMap,gamepad1);
-        IntakeV2 intake = new IntakeV2(hardwareMap, gamepad2);
-        Launcher launcher = new Launcher(hardwareMap, gamepad2);
-        AprilTagsys aprilTagsys = new AprilTagsys(hardwareMap,gamepad2);
+        intake = new IntakeV2(hardwareMap, gamepad1);
+        launcher = new Launcher(hardwareMap, gamepad1);
 
         waitForStart();
         // runs all of the systems
         while (opModeIsActive()){
+            launcher.runLauncher();
             drivetrain.drive();
             intake.runIntake();
-            launcher.runLauncher();
-            aprilTagsys.runAprilTags();
-            aprilTagsys.telemetryAprilTag();
             initTelemetry();
         }
     }
@@ -43,6 +39,8 @@ public class MainDrive extends LinearOpMode {
     private void initTelemetry () {
         telemetry.addData("Toggle",drivetrain.getXToggle());
         telemetry.addData("Toggle",drivetrain.getRToggle());
+        telemetry.addData("launcher vel", launcher.getLauncherSpeed());
+        telemetry.addData("gamepad trigger0",gamepad1.left_trigger);
         telemetry.update();
     }
 }
