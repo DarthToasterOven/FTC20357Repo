@@ -62,28 +62,28 @@ public final class MecanumDrive {
         public RevHubOrientationOnRobot.UsbFacingDirection usbFacingDirection =
                 RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD;
 
-        public double inPerTick = 165/5250.0 ;
-        public double lateralInPerTick = 165/ 4800.0;
+        public double inPerTick = 170/5250.0 ;
+        public double lateralInPerTick = 175/ 4800.0;
         public double trackWidthTicks = 1260.0;
 
         // feedforward parameters (in tick units)
-        public double kS = 0.175;
-        public double kV = 0.0043;
-        public double kA = 0.00051;
+        public double kS = 0.18;
+        public double kV = 0.0045;
+        public double kA = 0.00078;
 
         // path profile parameters (in inches)
-        public double maxWheelVel = 70;
+        public double maxWheelVel = 50;
         public double minProfileAccel = -30;
-        public double maxProfileAccel = 70;
+        public double maxProfileAccel = 50;
 
         // turn profile parameters (in radians)
         public double maxAngVel =  Math.PI; // shared with path
         public double maxAngAccel =  Math.PI;
 
         // path controller gains
-        public double axialGain = 9;
-        public double lateralGain = 6;
-        public double headingGain = 10; // shared with turn
+        public double axialGain = 3.5;
+        public double lateralGain = 3.5;
+        public double headingGain = 3.5; // shared with turn
 
         public double axialVelGain = 0.0;
         public double lateralVelGain = 0.0;
@@ -246,7 +246,7 @@ public final class MecanumDrive {
 
         // TODO: make sure your config has an IMU with this name (can be BNO or BHI)
             //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
-        lazyImu = new LazyHardwareMapImu(hardwareMap, "imu2", new RevHubOrientationOnRobot(
+        lazyImu = new LazyHardwareMapImu(hardwareMap, "imu", new RevHubOrientationOnRobot(
                 PARAMS.logoFacingDirection, PARAMS.usbFacingDirection));
 
 

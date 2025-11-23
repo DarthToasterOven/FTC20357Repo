@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Toros.Drive;
 
+import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -18,18 +19,23 @@ public class MainDrive extends LinearOpMode {
     // All that needs to be done in the code is construct the subsystems and run their systems with a method
     DriveTrain drivetrain;
     IntakeV2 intake;
-    Launcher launcher;
+    public static double p1 = 0.009, i1 = 0.45, d1 = 0;
+
+    public static double f1 = 0;
+    private PIDController controller;
+
+    public static int targetVel = -1610;
     @Override
     public void runOpMode() throws InterruptedException {
         //Constructs the systems and makes them objects allowing to use a method to run the system and allows for other methods to be used
         drivetrain = new DriveTrain(hardwareMap,gamepad1);
         intake = new IntakeV2(hardwareMap, gamepad1);
-        launcher = new Launcher(hardwareMap, gamepad1);
+        controller = new PIDController(p1,i1,d1);
+
 
         waitForStart();
         // runs all of the systems
         while (opModeIsActive()){
-            launcher.runLauncher();
             drivetrain.drive();
             intake.runIntake();
             initTelemetry();
@@ -39,7 +45,7 @@ public class MainDrive extends LinearOpMode {
     private void initTelemetry () {
         telemetry.addData("Toggle",drivetrain.getXToggle());
         telemetry.addData("Toggle",drivetrain.getRToggle());
-        telemetry.addData("launcher vel", launcher.getLauncherSpeed());
+        telemetry.addData("launcher vel", intake.getLauncherSpeed());
         telemetry.addData("gamepad trigger0",gamepad1.left_trigger);
         telemetry.update();
     }

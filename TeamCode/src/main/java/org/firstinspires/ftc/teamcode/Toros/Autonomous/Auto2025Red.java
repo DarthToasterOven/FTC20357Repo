@@ -24,13 +24,12 @@ import org.firstinspires.ftc.teamcode.RR.MecanumDrive;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import org.opencv.core.Mat;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Autonomous(name = "Auto2025")
-public class Auto2025 extends LinearOpMode {
+public class Auto2025Red extends LinearOpMode {
     public DcMotorEx launch;
     private DcMotor intake;
     private Servo gate;
@@ -172,7 +171,7 @@ public class Auto2025 extends LinearOpMode {
 
 
 //        initAprilTag();
-        Pose2d initialPose = new Pose2d(-48, -50, Math.toRadians(45));
+        Pose2d initialPose = new Pose2d(-48, 50, Math.toRadians(310));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         Launcher launcher = new Launcher(hardwareMap);
         Intake intake = new Intake(hardwareMap);
@@ -184,46 +183,46 @@ public class Auto2025 extends LinearOpMode {
         waitForStart();
 
         Action tab1 = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(-16,-16),Math.toRadians(40))//change to 180 once april tag and color sensing system works /-2
+                .strafeToLinearHeading(new Vector2d(-16,4),Math.toRadians(125))//change to 180 once april tag and color sensing system works /-2
 //                .stopAndAdd(scanMotif())
 //                .turn(Math.toRadians(70))
                         .build();
-        Action tab2 = drive.actionBuilder(new Pose2d(-16,-16,Math.toRadians(40)))//set var constraint later
+        Action tab2 = drive.actionBuilder(new Pose2d(-16,16,Math.toRadians(125)))//set var constraint later
 //                .waitSeconds(5)
-                .strafeToLinearHeading(new Vector2d(-10,-28),Math.toRadians(270))
-                .strafeTo(new Vector2d(-10,-53))
+                .strafeToLinearHeading(new Vector2d(-10,28),Math.toRadians(270))
+                .strafeTo(new Vector2d(-10,53))
                 .build();
-        Action tab3 = drive.actionBuilder(new Pose2d(-10,-53,Math.toRadians(270)))
-                .strafeToLinearHeading(new Vector2d(-16,-16),Math.toRadians(40))
+        Action tab3 = drive.actionBuilder(new Pose2d(-10,53,Math.toRadians(270)))
+                .strafeToLinearHeading(new Vector2d(-16,16),Math.toRadians(125))
                 .build();
-        Action tab4 = drive.actionBuilder(new Pose2d(-16,-16, Math.toRadians(40)))
-                .strafeToLinearHeading(new Vector2d(12.25,-28),Math.toRadians(90))
-                .strafeTo(new Vector2d(12.25,-53))
+        Action tab4 = drive.actionBuilder(new Pose2d(-16,16, Math.toRadians(125)))
+                .strafeToLinearHeading(new Vector2d(12.25,28),Math.toRadians(270))
+                .strafeTo(new Vector2d(12.25,53))
 //                .waitSeconds(2.5)
                 .build();
-        Action tab5 = drive.actionBuilder(new Pose2d(12.25,-53,Math.toRadians(90)))
-                .strafeToLinearHeading(new Vector2d(-34,-12), Math.toRadians(235))
+        Action tab5 = drive.actionBuilder(new Pose2d(12.25,53,Math.toRadians(270)))
+                .strafeToLinearHeading(new Vector2d(-34,12), Math.toRadians(125))
                 .build();
-        Action tab6 = drive.actionBuilder(new Pose2d(-34,-12,Math.toRadians(270)))
-                .strafeToLinearHeading(new Vector2d(35.25,-12),Math.toRadians(90))
-                .strafeTo(new Vector2d(35.25,-53))
+        Action tab6 = drive.actionBuilder(new Pose2d(-34,12,Math.toRadians(125)))
+                .strafeToLinearHeading(new Vector2d(35.25,12),Math.toRadians(270))
+                .strafeTo(new Vector2d(35.25,53))
                 .build();
         if (opModeIsActive()) {
             Actions.runBlocking(
                     new SequentialAction(
-                            tab1, // move to launch position
-                            launcher.fireBall(), // launch
+                            tab1,
+                            launcher.fireBall(),
                             new ParallelAction(
-                                    tab2, // back up into ball
-                                    intake.takeBall() // intake
+                                    tab2,
+                                    intake.takeBall()
                             ),
-                            tab3, // laucnh position
-                            launcher.fireBall(), // fire ball
+                            tab3,
+                            launcher.fireBall(),
                             new ParallelAction(
-                                    tab4, // back up
-                                    intake.takeBall() // take ball
+                                    tab4,
+                                    intake.takeBall()
                             ),
-                            tab5, // launch position
+                            tab5,
                             new ParallelAction(
                                     tab6,
                                     intake.takeBall()
