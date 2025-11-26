@@ -33,8 +33,6 @@ public class Launcher {
         }
         if (gamepad1.right_trigger > 0.1) {
             launch.setVelocity(-1600);
-            trans.setPower(1);
-            trans.setPower(1);
             if(launch.getVelocity() >= -1550) {
                 gate.setPosition(0);
             }

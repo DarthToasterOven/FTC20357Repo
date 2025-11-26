@@ -38,6 +38,7 @@ public class MainDrive extends LinearOpMode {
         while (opModeIsActive()){
             drivetrain.drive();
             intake.runIntake();
+            intake.runlauncher();
             initTelemetry();
         }
     }

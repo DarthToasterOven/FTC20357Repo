@@ -29,7 +29,7 @@ import org.opencv.core.Mat;
 import java.util.ArrayList;
 import java.util.List;
 
-@Autonomous(name = "Auto2025")
+@Autonomous(name = "AutoBlueNearGoal")
 public class Auto2025 extends LinearOpMode {
     public DcMotorEx launch;
     private DcMotor intake;
@@ -137,18 +137,6 @@ public class Auto2025 extends LinearOpMode {
                 telemetryAprilTag();
             }
             return motif.size() != 3;
-        }
-    }
-
-    public class turnTable implements Action{
-        private boolean init = false;
-
-        @Override
-        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-            if(!init){
-                // go to position at called
-            }
-            return false;
         }
     }
 

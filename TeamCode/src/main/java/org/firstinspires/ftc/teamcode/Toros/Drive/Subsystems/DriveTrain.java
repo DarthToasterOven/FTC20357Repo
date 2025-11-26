@@ -61,7 +61,6 @@ public class DriveTrain {
 
     public void drive (){
         currentGamepad1.copy(gamepad1);
-        //previousGamepad1.copy(currentGamepad1)
 
         //Our toggle to slow down either rotationally or just in the x or y directions
         if(currentGamepad1.dpadLeftWasPressed()){
@@ -71,21 +70,13 @@ public class DriveTrain {
             Rtoggle = !Rtoggle;
         }
 
-/*
-        if(currentGamepad1.x && !previousGamepad1.x){
-            Xtoggle = !Xtoggle;
-        }
-        if(currentGamepad1.b && !previousGamepad1.b){
-            Rtoggle = !Rtoggle;
-        }
-*/
 
         //Taking our gamepad inputs
         double x = gamepad1.left_stick_x * 1.1; // the *1.1 counteracts imperfect strafing
         double y = -gamepad1.left_stick_y;
         double turn = gamepad1.right_stick_x;
 
-        //Toggles just slow down the speed to 3/4 of the robots speed/power
+        //Toggles just slow down the speed to 1/2 of the robots speed/power
         if(Xtoggle){
             x *= 0.5;
             y *= 0.5;
