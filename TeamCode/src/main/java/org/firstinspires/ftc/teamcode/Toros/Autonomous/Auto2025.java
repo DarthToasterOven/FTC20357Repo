@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
@@ -31,17 +32,17 @@ import java.util.List;
 
 @Autonomous(name = "AutoBlueNearGoal")
 public class Auto2025 extends LinearOpMode {
-    public DcMotorEx launch;
+    public DcMotorEx launch, turretMotor;
     private DcMotor intake;
     private Servo gate;
     private PIDController controller;
 
     public static double p1 = 0.009, i1 = 0.45, d1 = 0;
 
-    public static double f1 = 0;
+    public static double p2 = 0, i2 = 0, d2 =0;
 
     public static int targetVel = -1600;
-
+    public static int targetAngle = 0;
     public class Launcher {
         public Launcher(HardwareMap hardwareMap) {
             launch = hardwareMap.get(DcMotorEx.class, "launch");
@@ -91,7 +92,34 @@ public class Auto2025 extends LinearOpMode {
     }
 
 
+    public class Turret{
+        public Turret(HardwareMap hardwareMap){
+            turretMotor = hardwareMap.get(DcMotorEx.class,"turret");
+            turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            controller = new PIDController(p2, i2, d2);
+            controller.setPID(p2, i2, d2);
+        }
+        public class turretAction implements Action{
 
+            @Override
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                double Currentangle = (turretMotor.getCurrentPosition()/384.5)*360;
+                double ticks = (384.5*targetAngle)/360;
+                double motorPosition = turretMotor.getCurrentPosition();
+                double pid = controller.calculate(motorPosition, ticks);
+                double power = pid;
+                turretMotor.setPower(power);
+                if(Currentangle > 360){
+                    targetAngle = 0;
+                }
+                return true;
+            }
+        }
+        public Action turretAction(){return  new turretAction();}
+        public Action changeAngle(int target){return new InstantAction(()-> targetAngle = target);
+        }
+    }
 
     public class Intake {
 
@@ -164,37 +192,37 @@ public class Auto2025 extends LinearOpMode {
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         Launcher launcher = new Launcher(hardwareMap);
         Intake intake = new Intake(hardwareMap);
+        Turret turret = new Turret(hardwareMap);
         // Wait for the DS start button to be touched.
         telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
         telemetry.addData(">", "Touch START to start OpMode");
         telemetry.update();
-
         waitForStart();
 
         Action tab1 = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(-16,-16),Math.toRadians(40))//change to 180 once april tag and color sensing system works /-2
+                .strafeToLinearHeading(new Vector2d(-13,-13),Math.toRadians(45))//change to 180 once april tag and color sensing system works /-2
 //                .stopAndAdd(scanMotif())
 //                .turn(Math.toRadians(70))
                         .build();
-        Action tab2 = drive.actionBuilder(new Pose2d(-16,-16,Math.toRadians(40)))//set var constraint later
+        Action tab2 = drive.actionBuilder(drive.localizer.getPose())//set var constraint later
 //                .waitSeconds(5)
-                .strafeToLinearHeading(new Vector2d(-10,-28),Math.toRadians(270))
-                .strafeTo(new Vector2d(-10,-53))
+                .strafeToLinearHeading(new Vector2d(-12,-28),Math.toRadians(270))
+                .strafeTo(new Vector2d(-12,-53))
                 .build();
-        Action tab3 = drive.actionBuilder(new Pose2d(-10,-53,Math.toRadians(270)))
-                .strafeToLinearHeading(new Vector2d(-16,-16),Math.toRadians(40))
+        Action tab3 = drive.actionBuilder(drive.localizer.getPose())
+                .strafeToLinearHeading(new Vector2d(-13,-13),Math.toRadians(45))
                 .build();
-        Action tab4 = drive.actionBuilder(new Pose2d(-16,-16, Math.toRadians(40)))
-                .strafeToLinearHeading(new Vector2d(12.25,-28),Math.toRadians(90))
-                .strafeTo(new Vector2d(12.25,-53))
+        Action tab4 = drive.actionBuilder(drive.localizer.getPose())
+                .strafeToLinearHeading(new Vector2d(12,-28),Math.toRadians(270))
+                .strafeTo(new Vector2d(12,-53))
 //                .waitSeconds(2.5)
                 .build();
-        Action tab5 = drive.actionBuilder(new Pose2d(12.25,-53,Math.toRadians(90)))
-                .strafeToLinearHeading(new Vector2d(-34,-12), Math.toRadians(235))
+        Action tab5 = drive.actionBuilder(drive.localizer.getPose())
+                .strafeToLinearHeading(new Vector2d(-13,-13), Math.toRadians(45))
                 .build();
-        Action tab6 = drive.actionBuilder(new Pose2d(-34,-12,Math.toRadians(270)))
-                .strafeToLinearHeading(new Vector2d(35.25,-12),Math.toRadians(90))
-                .strafeTo(new Vector2d(35.25,-53))
+        Action tab6 = drive.actionBuilder(drive.localizer.getPose())
+                .strafeToLinearHeading(new Vector2d(36,-12),Math.toRadians(270))
+                .strafeTo(new Vector2d(36,-53))
                 .build();
         if (opModeIsActive()) {
             Actions.runBlocking(
