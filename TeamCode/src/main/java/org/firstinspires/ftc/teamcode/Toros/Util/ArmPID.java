@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode.Toros.Util;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
-
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -11,7 +8,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 
 @Config
@@ -27,28 +23,23 @@ public class ArmPID extends LinearOpMode {
     public static double f1 = 0.004;
 
     public static int target1 = 425;
-    public static double p2 = 0.0095, i2 = 0.04, d2 = 0.00008;
+    public static double p2 = 0, i2 = 0, d2 = 0;
 
     public static double f2 = 0.004;
 
-    public static int target2 = -125 ;
+    public static int target2 = 0 ;
 
     private final double ticks_in_degrees = 1440/180;
-    private DcMotorEx pivot, slideLeft,slideRight;
+    private DcMotorEx pivot, turretMotor,slideRight;
     @Override
     public void runOpMode() throws InterruptedException {
         controller = new PIDController(p1,i1,d1);
         controller2 = new PIDController(p2,i2,d2);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        pivot = hardwareMap.get(DcMotorEx.class,"pivot");
-        slideRight = hardwareMap.get(DcMotorEx.class,"slideRight");
-        slideLeft = hardwareMap.get(DcMotorEx.class,"slideLeft");
-        slideLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        slideRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        slideLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        slideRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        slideLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        turretMotor = hardwareMap.get(DcMotorEx.class,"turret");
+        turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         waitForStart();
         while (opModeIsActive()){
@@ -64,20 +55,20 @@ public class ArmPID extends LinearOpMode {
 //            slideRight.setPower(slidePower);
 
             controller2.setPID(p2,i2,d2);
-            int armPos = pivot.getCurrentPosition();
+            int armPos = turretMotor.getCurrentPosition();
             double pid2 = controller2.calculate(armPos, target2);
-            double ff2 = Math.cos(Math.toRadians(target2/ticks_in_degrees)) * f2;
+//            double ff2 = Math.cos(Math.toRadians(target2/ticks_in_degrees)) * f2;
 
-            double pivotPower = pid2 + ff2;
+//            double pivotPower = pid2 + ff2;
 
-            pivot.setPower(pivotPower);
+            turretMotor.setPower(pid2);
 
 
 //            telemetry.addData("Slide Left Pos", slidePos);
 //            telemetry.addData("Slide Right Pos", slideRight.getCurrentPosition());
 //            telemetry.addData("Slide Target", target1);
-            telemetry.addData("Pivot pos", armPos);
-            telemetry.addData("Pivot target",target2);
+            telemetry.addData("turret pos", armPos);
+            telemetry.addData("turret target",target2);
             telemetry.update();
 
         }

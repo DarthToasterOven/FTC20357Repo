@@ -43,8 +43,8 @@ public class MainDrive extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         //Constructs the systems and makes them objects allowing to use a method to run the system and allows for other methods to be used
-        drivetrain = new DriveTrain(hardwareMap,gamepad1);
-        intake = new IntakeV2(hardwareMap, gamepad1);
+//        drivetrain = new DriveTrain(hardwareMap,gamepad1);
+//        intake = new IntakeV2(hardwareMap, gamepad1);
         turret = new Turret(hardwareMap,gamepad2);
         initAprilTag();
         waitForStart();
@@ -53,7 +53,13 @@ public class MainDrive extends LinearOpMode {
             drivetrain.drive();
             intake.runIntake();
             intake.runlauncher();
+            turret.runTurret();
             initTelemetry();
+            telemetryAprilTag();
+            lockOn();
+            if(gamepad2.bWasPressed()){
+                turret.setAngle(35);
+            }
         }
     }
 
@@ -123,18 +129,47 @@ public class MainDrive extends LinearOpMode {
     }   // end method initAprilTag()
     //Telemetry which is good for debugging and seeing how we preform
     private void initTelemetry () {
-        telemetry.addData("Toggle",drivetrain.getXToggle());
-        telemetry.addData("Toggle",drivetrain.getRToggle());
-        telemetry.addData("launcher vel", intake.getLauncherSpeed());
-        telemetry.addData("gamepad trigger0",gamepad1.left_trigger);
+//        telemetry.addData("Toggle",drivetrain.getXToggle());
+//        telemetry.addData("Toggle",drivetrain.getRToggle());
+//        telemetry.addData("launcher vel", intake.getLauncherSpeed());
+//        telemetry.addData("gamepad trigger0",gamepad1.left_trigger);
+        telemetry.addData("Angle", turret.getTurretAngle());
+        telemetry.addData("Target angle", turret.targetAngle);
+        telemetry.addData("Motor position", turret.motorPosition);
+        telemetry.addData("Target position,", turret.targetPos);
+        telemetry.addData("Motor Power", turret.power);
         telemetry.update();
     }
     private void lockOn(){
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         for(AprilTagDetection detection: currentDetections){
-            if(detection.metadata != null && gamepad2.yWasPressed()){
-                turret.setAngle((int)(turret.getTurretAngle() + detection.ftcPose.yaw));
+            while(detection.metadata != null && gamepad2.yWasPressed()){
+                turret.setAngle(turret.getTurretAngle() + detection.ftcPose.yaw);
             }
         }
+    }
+    private void telemetryAprilTag() {
+
+        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+        telemetry.addData("# AprilTags Detected", currentDetections.size());
+
+        // Step through the list of detections and display info for each one.
+        for (AprilTagDetection detection : currentDetections) {
+            if (detection.metadata != null) {
+                telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
+                telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
+                telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
+                telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
+            } else {
+                telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
+                telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
+            }
+        }   // end for() loop
+
+        // Add "key" information to telemetry
+        telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
+        telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
+        telemetry.addLine("RBE = Range, Bearing & Elevation");
+
     }
 }

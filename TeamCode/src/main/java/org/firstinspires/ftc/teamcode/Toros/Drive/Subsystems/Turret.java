@@ -10,57 +10,51 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.opencv.core.Mat;
 
 public class Turret {
-    public static double p1 = 0.009, i1 = 0.45, d1 = 0;
+    public static double p1 = 0.0025, i1 = 0.000001, d1 = 0.0001;
 
-    public static int targetPosition = 0;
     private DcMotorEx turretMotor;
     private PIDController controller;
-    private double ticks = 384.5/180;
-    private double circumference = 203 * Math.PI;
-    int direction = 1;
-    int targetAngle = 0;
+    public int targetAngle = 0;
+    public double motorPosition;
+    double gearRatio = 2.0 / 5.0;
     private
     Gamepad gamepad2;
-    public Turret(HardwareMap hardwareMap, Gamepad gamepad){
-        turretMotor = hardwareMap.get(DcMotorEx.class,"turret");
+    public double power;
+    public double targetPos;
+
+    public Turret(HardwareMap hardwareMap, Gamepad gamepad) {
+        turretMotor = hardwareMap.get(DcMotorEx.class, "turret");
+        turretMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         gamepad2 = gamepad;
         controller = new PIDController(p1, i1, d1);
+    }
+
+    public void runTurret() {
         controller.setPID(p1, i1, d1);
-    }
+        double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360.0 * gearRatio;
+        targetPos = (384.5 * targetAngle) / 360.0 * (5.0 / 2.0);
+        motorPosition = turretMotor.getCurrentPosition();
 
-    private void runTurret(){
-        double Currentangle = (turretMotor.getCurrentPosition()/384.5)*360;
-        if(Currentangle > 360){
-            targetAngle = 0;
-        }
-        double ticks = (384.5*targetAngle)/360;
-        double motorPosition = turretMotor.getCurrentPosition();
-
-
-        if(Math.abs(gamepad2.left_stick_x) > 0.1){
-            targetAngle += gamepad2.left_stick_x*15;
+//        if(currentAngle > 360){
+//            targetAngle = 0;
+//        }
+        if (Math.abs(gamepad2.left_stick_x) > 0.1) {
+            targetAngle += gamepad2.left_stick_x * 5;
         }
 
-        double pid = controller.calculate(motorPosition, ticks);
-        double power = pid;
-
-
+        power = controller.calculate(motorPosition, targetPos);
 
         turretMotor.setPower(power);
     }
-    public void setAngle(int targetAngle){
-        double Currentangle = (turretMotor.getCurrentPosition()/384.5)*360;
-        double ticks = (384.5*targetAngle)/360;
-        double motorPosition = turretMotor.getCurrentPosition();
-        double pid = controller.calculate(motorPosition, ticks);
-        double power = pid;
-        turretMotor.setPower(power);
-        if(Currentangle > 360){
-            this.targetAngle = 0;
-        }
-    }
-    public int getTurretAngle(){
-        return (int)(turretMotor.getCurrentPosition()/384.5)*360;
+
+    public void setAngle(double target) {
+        targetAngle = (int) target;
     }
 
+    public double getTurretAngle() {
+        return (turretMotor.getCurrentPosition() / 384.5) * 360 * gearRatio;
+    }
 }
+
