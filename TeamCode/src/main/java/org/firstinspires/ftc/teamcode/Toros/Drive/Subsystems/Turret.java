@@ -29,17 +29,18 @@ public class Turret {
         turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         gamepad2 = gamepad;
         controller = new PIDController(p1, i1, d1);
+        controller.setPID(p1, i1, d1);
     }
 
     public void runTurret() {
-        controller.setPID(p1, i1, d1);
+
         double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360.0 * gearRatio;
         targetPos = (384.5 * targetAngle) / 360.0 * (5.0 / 2.0);
         motorPosition = turretMotor.getCurrentPosition();
 
-//        if(currentAngle > 360){
-//            targetAngle = 0;
-//        }
+        if(Math.abs(currentAngle) > 360){
+            targetAngle = 0;
+        }
         if (Math.abs(gamepad2.left_stick_x) > 0.1) {
             targetAngle += gamepad2.left_stick_x * 5;
         }

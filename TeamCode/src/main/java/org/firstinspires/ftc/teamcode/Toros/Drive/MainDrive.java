@@ -141,12 +141,21 @@ public class MainDrive extends LinearOpMode {
         telemetry.update();
     }
     private void lockOn(){
+        boolean lockedOn = false;
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         for(AprilTagDetection detection: currentDetections){
-            while(detection.metadata != null && gamepad2.yWasPressed()){
-                turret.setAngle(turret.getTurretAngle() + detection.ftcPose.yaw);
+            if(gamepad2.yWasPressed()){
+                lockedOn = true;
             }
+            else if(gamepad2.bWasPressed()){
+                lockedOn = false;
+            }
+            if(detection.metadata != null && lockedOn){
+                turret.setAngle(turret.getTurretAngle() + detection.ftcPose.x);
+            }
+
         }
+
     }
     private void telemetryAprilTag() {
 

@@ -39,7 +39,7 @@ public class Auto2025 extends LinearOpMode {
 
     public static double p1 = 0.009, i1 = 0.45, d1 = 0;
 
-    public static double p2 = 0, i2 = 0, d2 =0;
+    public static double p2 = 0.0025, i2 = 0.000001, d2 =0.0001;
 
     public static int targetVel = -1600;
     public static int targetAngle = 0;
@@ -104,8 +104,8 @@ public class Auto2025 extends LinearOpMode {
 
             @Override
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-                double Currentangle = (turretMotor.getCurrentPosition()/384.5)*360;
-                double ticks = (384.5*targetAngle)/360;
+                double Currentangle = (turretMotor.getCurrentPosition()/384.5)*360*(2.0/5.0);
+                double ticks = (384.5 * targetAngle) / 360.0 * (5.0 / 2.0);;
                 double motorPosition = turretMotor.getCurrentPosition();
                 double pid = controller.calculate(motorPosition, ticks);
                 double power = pid;
