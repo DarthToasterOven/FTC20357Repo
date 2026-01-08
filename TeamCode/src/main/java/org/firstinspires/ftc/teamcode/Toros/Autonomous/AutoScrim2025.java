@@ -92,7 +92,7 @@ import java.util.Timer;
  *  Use Android Studio to Copy this Class, and Paste it into your "TeamCode" folder with a new name.
  *  Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
-
+@Disabled
 @Autonomous(name="ScrimAuto2025", group="Robot")
 public class AutoScrim2025 extends LinearOpMode {
 

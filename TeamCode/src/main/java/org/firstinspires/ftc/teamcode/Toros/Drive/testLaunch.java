@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.Toros.Drive;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @TeleOp(name ="testLaunch")
+@Disabled
 public class testLaunch extends LinearOpMode {
     private DcMotorEx L1,L2;
 

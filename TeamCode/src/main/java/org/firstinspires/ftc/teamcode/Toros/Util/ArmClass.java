@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Toros.Util;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -8,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 
+@Disabled
 public class ArmClass {
     Gamepad gamepad2;
     private final DcMotorEx pivot, slideLeft, slideRight;

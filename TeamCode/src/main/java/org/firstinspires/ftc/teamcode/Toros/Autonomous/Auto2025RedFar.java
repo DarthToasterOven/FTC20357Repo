@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -28,11 +27,10 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.ArrayList;
 import java.util.List;
 
-@Autonomous(name = "Auto2025")
-public class Auto2025Red extends LinearOpMode {
+@Autonomous(name = "Auto2025RedFar")
+public class Auto2025RedFar extends LinearOpMode {
     public DcMotorEx launch;
     private DcMotor intake;
-    private Servo gate;
     private PIDController controller;
 
     public static double p1 = 0.009, i1 = 0.45, d1 = 0;
@@ -48,8 +46,6 @@ public class Auto2025Red extends LinearOpMode {
             controller = new PIDController(p1,i1,d1);
             intake = hardwareMap.get(DcMotor.class, "intake");
             intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            gate = hardwareMap.get(Servo.class,"gate");
-            gate.setPosition(0.2);
         }
 
         public class launcherAction implements Action {
@@ -68,7 +64,6 @@ public class Auto2025Red extends LinearOpMode {
                 launch.setPower(power);
                 telemetryPacket.put("time",timer.seconds());
                 if (launch.getVelocity() <= -1590) { //1585
-                    gate.setPosition(0);
                     intake.setPower(-0.6);
                 } else if (launch.getVelocity() >= -1590) {
                     intake.setPower(0);
@@ -97,8 +92,6 @@ public class Auto2025Red extends LinearOpMode {
         public Intake(HardwareMap hardwareMap) {
             intake = hardwareMap.get(DcMotor.class, "intake");
             intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            gate = hardwareMap.get(Servo.class, "gate");
-            gate.setPosition(0.2);
             //add color sensor
         }
         public class intakeAction implements Action {
@@ -109,7 +102,6 @@ public class Auto2025Red extends LinearOpMode {
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 if (!init) {
                     intake.setPower(1);
-                    gate.setPosition(0.25);
                     init = true;
                     timer = new ElapsedTime();
                 }
@@ -171,7 +163,7 @@ public class Auto2025Red extends LinearOpMode {
 
 
 //        initAprilTag();
-        Pose2d initialPose = new Pose2d(-48, 50, Math.toRadians(310));
+        Pose2d initialPose = new Pose2d(-61.25, 12, Math.toRadians(180));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         Launcher launcher = new Launcher(hardwareMap);
         Intake intake = new Intake(hardwareMap);
@@ -183,14 +175,14 @@ public class Auto2025Red extends LinearOpMode {
         waitForStart();
 
         Action tab1 = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(-16,4),Math.toRadians(125))//change to 180 once april tag and color sensing system works /-2
+                .strafeToLinearHeading(new Vector2d(-34,12),Math.toRadians(-235))
 //                .stopAndAdd(scanMotif())
 //                .turn(Math.toRadians(70))
                         .build();
         Action tab2 = drive.actionBuilder(new Pose2d(-16,16,Math.toRadians(125)))//set var constraint later
 //                .waitSeconds(5)
-                .strafeToLinearHeading(new Vector2d(-10,28),Math.toRadians(270))
-                .strafeTo(new Vector2d(-10,53))
+                .strafeToLinearHeading(new Vector2d(-11.5,28),Math.toRadians(-90))
+                .strafeTo(new Vector2d(-11.5,53))
                 .build();
         Action tab3 = drive.actionBuilder(new Pose2d(-10,53,Math.toRadians(270)))
                 .strafeToLinearHeading(new Vector2d(-16,16),Math.toRadians(125))
@@ -210,23 +202,23 @@ public class Auto2025Red extends LinearOpMode {
         if (opModeIsActive()) {
             Actions.runBlocking(
                     new SequentialAction(
-                            tab1,
-                            launcher.fireBall(),
-                            new ParallelAction(
-                                    tab2,
-                                    intake.takeBall()
-                            ),
-                            tab3,
-                            launcher.fireBall(),
-                            new ParallelAction(
-                                    tab4,
-                                    intake.takeBall()
-                            ),
-                            tab5,
-                            new ParallelAction(
-                                    tab6,
-                                    intake.takeBall()
-                            )
+                            tab1
+//                            launcher.fireBall(),
+//                            new ParallelAction(
+//                                    tab2,
+//                                    intake.takeBall()
+//                            ),
+//                            tab3,
+//                            launcher.fireBall(),
+//                            new ParallelAction(
+//                                    tab4,
+//                                    intake.takeBall()
+//                            ),
+//                            tab5,
+//                            new ParallelAction(
+//                                    tab6,
+//                                    intake.takeBall()
+//                            )
                     )
             );
             while (opModeIsActive()) {

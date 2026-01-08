@@ -1,20 +1,16 @@
 package org.firstinspires.ftc.teamcode.Toros.Drive;
 
-import com.arcrobotics.ftclib.controller.PIDController;
+import android.util.Size;
+
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.teamcode.Toros.Autonomous.AprilTagsys;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.DriveTrain;
-import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.Intake;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.IntakeV2;
-import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.Launcher;
-import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.Pivot;
-import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.Slides;
-import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.BatteryClass;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.Turret;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -26,40 +22,38 @@ import java.util.List;
 public class MainDrive extends LinearOpMode {
     // In our drive class we broke it down into subsystems to make it easier to read
     // All that needs to be done in the code is construct the subsystems and run their systems with a method
-    private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
-
-    /**
-     * The variable to store our instance of the AprilTag processor.
-     */
+    private static final boolean USE_WEBCAM = true;
     private AprilTagProcessor aprilTag;
 
-    /**
-     * The variable to store our instance of the vision portal.
-     */
     private VisionPortal visionPortal;
     DriveTrain drivetrain;
     IntakeV2 intake;
     Turret turret;
+    List<LynxModule> allHubs;
+    private boolean lockedOn = false;
     @Override
     public void runOpMode() throws InterruptedException {
         //Constructs the systems and makes them objects allowing to use a method to run the system and allows for other methods to be used
-//        drivetrain = new DriveTrain(hardwareMap,gamepad1);
-//        intake = new IntakeV2(hardwareMap, gamepad1);
+        allHubs = hardwareMap.getAll(LynxModule.class);
+        for(LynxModule hub: allHubs){
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
+        telemetry.setMsTransmissionInterval(500);
+        drivetrain = new DriveTrain(hardwareMap,gamepad1);
+        intake = new IntakeV2(hardwareMap, gamepad1, gamepad2);
         turret = new Turret(hardwareMap,gamepad2);
         initAprilTag();
         waitForStart();
         // runs all of the systems
         while (opModeIsActive()){
             drivetrain.drive();
-            intake.runIntake();
-            intake.runlauncher();
-            turret.runTurret();
             initTelemetry();
             telemetryAprilTag();
+            turret.runTurret();
             lockOn();
-            if(gamepad2.bWasPressed()){
-                turret.setAngle(35);
-            }
+            intake.runlauncher();
+            intake.runIntake();
+            intake.sheTransOnMyFerUntilI();
         }
     }
 
@@ -75,7 +69,6 @@ public class MainDrive extends LinearOpMode {
                 //.setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
                 //.setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
                 //.setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
-
                 // == CAMERA CALIBRATION ==
                 // If you do not manually specify calibration parameters, the SDK will attempt
                 // to load a predefined calibration for your camera.
@@ -91,7 +84,7 @@ public class MainDrive extends LinearOpMode {
         // Decimation = 3 ..  Detect 2" Tag from 4  feet away at 30 Frames Per Second (default)
         // Decimation = 3 ..  Detect 5" Tag from 10 feet away at 30 Frames Per Second (default)
         // Note: Decimation can be changed on-the-fly to adapt during a match.
-        //aprilTag.setDecimation(3);
+        aprilTag.setDecimation(3);
 
         // Create the vision portal by using a builder.
         VisionPortal.Builder builder = new VisionPortal.Builder();
@@ -99,10 +92,10 @@ public class MainDrive extends LinearOpMode {
         // Set the camera (webcam vs. built-in RC phone camera).
         if (USE_WEBCAM) {
             builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+            builder.setCameraResolution(new Size(1280, 720));
         } else {
             builder.setCamera(BuiltinCameraDirection.BACK);
         }
-
         // Choose a camera resolution. Not all cameras support all resolutions.
         //builder.setCameraResolution(new Size(640, 480));
 
@@ -131,17 +124,18 @@ public class MainDrive extends LinearOpMode {
     private void initTelemetry () {
 //        telemetry.addData("Toggle",drivetrain.getXToggle());
 //        telemetry.addData("Toggle",drivetrain.getRToggle());
-//        telemetry.addData("launcher vel", intake.getLauncherSpeed());
-//        telemetry.addData("gamepad trigger0",gamepad1.left_trigger);
+        telemetry.addData("launcher vel", intake.getLauncherSpeed());
+        telemetry.addData("gamepad trigger0",gamepad1.left_trigger);
         telemetry.addData("Angle", turret.getTurretAngle());
+        telemetry.addData("heading", drivetrain.getHeading());
         telemetry.addData("Target angle", turret.targetAngle);
         telemetry.addData("Motor position", turret.motorPosition);
         telemetry.addData("Target position,", turret.targetPos);
         telemetry.addData("Motor Power", turret.power);
+        telemetry.addData("Current",intake.launch.getCurrent(CurrentUnit.AMPS));
         telemetry.update();
     }
     private void lockOn(){
-        boolean lockedOn = false;
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         for(AprilTagDetection detection: currentDetections){
             if(gamepad2.yWasPressed()){
@@ -150,8 +144,8 @@ public class MainDrive extends LinearOpMode {
             else if(gamepad2.bWasPressed()){
                 lockedOn = false;
             }
-            if(detection.metadata != null && lockedOn){
-                turret.setAngle(turret.getTurretAngle() + detection.ftcPose.x);
+            if(detection.metadata != null && lockedOn){// Checks if there is a detection and that the lockon is active
+                turret.setAngle(turret.getTurretAngle());
             }
 
         }
