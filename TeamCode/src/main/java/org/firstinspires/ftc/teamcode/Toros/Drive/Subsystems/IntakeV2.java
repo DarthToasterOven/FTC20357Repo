@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems;
 
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -14,6 +15,7 @@ public class IntakeV2 {
     public DcMotorEx launch;
     private Servo hood;
     private DcMotorEx trans;
+    public ColorSensor c3;
 
     Gamepad gamepad1;
     private PIDController controller;
@@ -21,7 +23,7 @@ public class IntakeV2 {
     public static double p1 = 0.009, i1 = 0.45, d1 = 0;
 
     public static double f1 = 0;
-    public static int targetVel = -1610;
+    public static int targetVel = -1600;
     private Gamepad gamepad2;
 
     public IntakeV2(HardwareMap hardwareMap, Gamepad gamepad, Gamepad gamepadA) {
@@ -37,6 +39,7 @@ public class IntakeV2 {
         trans.setDirection(DcMotorSimple.Direction.REVERSE);
         controller = new PIDController(p1, i1, d1);
         controller.setPID(p1, i1, d1);
+        c3 = hardwareMap.get(ColorSensor.class,"c3");
 
     }
 
@@ -45,18 +48,21 @@ public class IntakeV2 {
         //double ff = Math.cos(Math.toRadians(targetVel /ticks_in_degrees)) * f1;
 
         //Laucnhes the ball with PID
-        if (gamepad2.right_trigger > 0.1) {
+        if (gamepad2.left_trigger > 0.1) {
             double launchVel = launch.getVelocity();
             double pid = controller.calculate(launchVel, targetVel);
             double power = pid;
             launch.setPower(power);
         }
-        if(gamepad2.right_trigger < 0.1){
+        if(gamepad2.left_trigger < 0.1){
             launch.setPower(0);
         }
 
-        else if (gamepad2.left_trigger > 0.1) {//reverse launcher if it gets stuck
-            launch.setPower(gamepad1.left_trigger);
+        if (gamepad2.right_trigger > 0.1 && launch.getVelocity()>= targetVel) {//reverse launcher if it gets stuck
+            trans.setPower(1);
+        }
+        else{
+            trans.setPower(0);
         }
         // Allows for increasing and decreasing of launch speed
         if (gamepad2.dpadUpWasPressed()) {
@@ -108,11 +114,12 @@ public class IntakeV2 {
 
     public void sheTransOnMyFerUntilI(){
         if(gamepad1.right_bumper){
-            trans.setPower(1);
+            trans.setPower(0.4);
         }
         if(gamepad1.left_bumper){
-            trans.setPower(-1);
+            trans.setPower(-0.4);
         }
+
         if(gamepad1.leftBumperWasReleased() || gamepad1.rightBumperWasReleased()){
             trans.setPower(0);
         }

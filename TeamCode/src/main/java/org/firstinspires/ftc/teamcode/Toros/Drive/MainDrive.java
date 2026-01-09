@@ -126,6 +126,9 @@ public class MainDrive extends LinearOpMode {
     private void initTelemetry () {
 //        telemetry.addData("Toggle",drivetrain.getXToggle());
 //        telemetry.addData("Toggle",drivetrain.getRToggle());
+        telemetry.addData("Color sensor red", c3.red());
+        telemetry.addData("Color sensor green", c3.green());
+        telemetry.addData("Color sensor blue", c3.blue());
         telemetry.addData("launcher vel", intake.getLauncherSpeed());
         telemetry.addData("gamepad trigger0",gamepad1.left_trigger);
         telemetry.addData("Angle", turret.getTurretAngle());
