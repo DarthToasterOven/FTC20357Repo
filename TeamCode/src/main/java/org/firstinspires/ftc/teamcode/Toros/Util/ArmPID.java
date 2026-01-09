@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 @Config
 @TeleOp
-@Disabled
+
 public class ArmPID extends LinearOpMode {
     private PIDController controller;
     private PIDController controller2;

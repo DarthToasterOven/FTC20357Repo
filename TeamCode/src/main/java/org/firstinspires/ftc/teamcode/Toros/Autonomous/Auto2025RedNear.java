@@ -208,6 +208,7 @@ public class Auto2025RedNear extends LinearOpMode {
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 //logic here for color sensors
                 return stored.size() == 3;
+
             }
         }
     }

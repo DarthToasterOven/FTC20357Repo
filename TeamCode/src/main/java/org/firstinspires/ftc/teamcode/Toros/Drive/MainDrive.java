@@ -56,6 +56,9 @@ public class MainDrive extends LinearOpMode {
             intake.runlauncher();
             intake.runIntake();
             intake.sheTransOnMyFerUntilI();
+            if(gamepad2.startWasPressed()){
+                terminateOpModeNow();
+            }
         }
     }
 
@@ -126,9 +129,11 @@ public class MainDrive extends LinearOpMode {
     private void initTelemetry () {
 //        telemetry.addData("Toggle",drivetrain.getXToggle());
 //        telemetry.addData("Toggle",drivetrain.getRToggle());
-        telemetry.addData("Color sensor red", c3.red());
-        telemetry.addData("Color sensor green", c3.green());
-        telemetry.addData("Color sensor blue", c3.blue());
+        telemetry.addData("Color sensor red", intake.c3.red());
+        telemetry.addData("Color sensor green", intake.c3.green());
+        telemetry.addData("Color sensor blue", intake.c3.blue());
+        telemetry.addData("Color sensor alpha", intake.c3.alpha());
+        telemetry.addData("Color sensor arg", intake.c3.argb());
         telemetry.addData("launcher vel", intake.getLauncherSpeed());
         telemetry.addData("gamepad trigger0",gamepad1.left_trigger);
         telemetry.addData("Angle", turret.getTurretAngle());
@@ -150,7 +155,7 @@ public class MainDrive extends LinearOpMode {
                 lockedOn = false;
             }
             if(detection.metadata != null && lockedOn){// Checks if there is a detection and that the lockon is active
-                turret.setAngle(turret.getTurretAngle() + detection.ftcPose.y);
+                turret.setAngle(turret.getTurretAngle());
             }
 
         }

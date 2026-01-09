@@ -13,7 +13,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.opencv.core.Mat;
 
 public class Turret {
-    public static double p1 = 0.0025, i1 = 0.000001, d1 = 0.0001;
+    public static double p1 = 0.002 , i1 = 0.00075, d1 = 0.000015;
 
     private DcMotorEx turretMotor;
     private PIDController controller;
@@ -48,25 +48,31 @@ public class Turret {
 
     public void runTurret() {
         double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+
         //Calculates the turret's angle and converts the targetAngle to the motor ticks
         double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360.0 * gearRatio + botHeading;
+
         targetPos = (384.5 * (targetAngle + (int)botHeading)) / 360.0 * (5.0 / 2.0);
         motorPosition = turretMotor.getCurrentPosition();
 
-        if (Math.abs(gamepad2.left_stick_x) > 0.1) {
-            targetAngle += gamepad2.left_stick_x * 2.5;
-        }
-
         //Hard limit originally was supposed to be a wrap around
-
         if(Math.abs(currentAngle) > 180){
-            targetAngle = (targetAngle-10)*-1;
+            targetAngle = (int)botHeading;
         }
+
 
 
         power = controller.calculate(motorPosition, targetPos);
 
         turretMotor.setPower(power);
+
+        if (Math.abs(gamepad2.left_stick_x) > 0.1) {
+            turretMotor.setPower(gamepad2.left_stick_x *0.25);
+            targetAngle = (int)currentAngle;
+        }
+
+
+
     }
 
     public void setAngle(double target) {
