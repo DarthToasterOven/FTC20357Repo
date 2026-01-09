@@ -145,7 +145,7 @@ public class MainDrive extends LinearOpMode {
                 lockedOn = false;
             }
             if(detection.metadata != null && lockedOn){// Checks if there is a detection and that the lockon is active
-                turret.setAngle(turret.getTurretAngle());
+                turret.setAngle(turret.getTurretAngle() + detection.ftcPose.y);
             }
 
         }

@@ -73,7 +73,7 @@ public class DriveTrain {
 
 
         //Taking our gamepad inputs
-        double x = -gamepad1.left_stick_x; // the *1.1 counteracts imperfect strafing
+        double x = gamepad1.left_stick_x; // the *1.1 counteracts imperfect strafing
         double y = -gamepad1.left_stick_y;
         double turn = gamepad1.right_stick_x;
 
