@@ -8,6 +8,7 @@ import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.arcrobotics.ftclib.controller.PIDController;
@@ -36,6 +37,7 @@ import java.util.List;
 @Autonomous(name = "AutoBlueNear")
 public class Auto2025BlueNear extends LinearOpMode {
     public DcMotorEx launch, turretMotor, trans;
+    public Servo hood;
     public ColorSensor c1,c2,c3;
     private DcMotor intake;
     private PIDController controller;
@@ -46,6 +48,7 @@ public class Auto2025BlueNear extends LinearOpMode {
 
     public static int targetVel = -1600;
     public static int targetAngle = 0;
+
     public class Launcher {
         public Launcher(HardwareMap hardwareMap) {
             launch = hardwareMap.get(DcMotorEx.class, "launch");
@@ -55,6 +58,7 @@ public class Auto2025BlueNear extends LinearOpMode {
             intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             trans = hardwareMap.get(DcMotorEx.class, "trans");
             trans.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            hood = hardwareMap.get(Servo.class, "hood");
         }
 
         public class launcherAction implements Action {
@@ -63,6 +67,7 @@ public class Auto2025BlueNear extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 if(!init) {
+                    timer.reset();
                     init = true;
                     controller.setPID(p1, i1, d1);
                 }
@@ -266,29 +271,39 @@ public class Auto2025BlueNear extends LinearOpMode {
         waitForStart();
 
         Action tab1 = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(-13,-13),Math.toRadians(270))//change to 180 once april tag and color sensing system works /-2
+                .strafeToLinearHeading(new Vector2d(-13,-13),Math.toRadians(270))
 //                .stopAndAdd(scanMotif())
 //                .turn(Math.toRadians(70))
-                        .build();
-        Action tab2 = drive.actionBuilder(drive.localizer.getPose())//set var constraint later
-//                .waitSeconds(5)
-                .strafeToLinearHeading(new Vector2d(-12,-28),Math.toRadians(270))
-                .strafeTo(new Vector2d(-12,-53))
                 .build();
-        Action tab3 = drive.actionBuilder(drive.localizer.getPose())
-                .strafeToLinearHeading(new Vector2d(-13,-13),Math.toRadians(270))
+        Action tab2 = drive.actionBuilder(new Pose2d(-13,-13,Math.toRadians(270)))//set var constraint later
+
+
+
+                .strafeTo(new Vector2d(-14,-53), new TranslationalVelConstraint(15.0))
                 .build();
-        Action tab4 = drive.actionBuilder(drive.localizer.getPose())
-                .strafeToLinearHeading(new Vector2d(12,-28),Math.toRadians(270))
-                .strafeTo(new Vector2d(12,-53))
-//                .waitSeconds(2.5)
+        Action tab3 = drive.actionBuilder(new Pose2d(-14,-53,Math.toRadians(270)))
+
+                .strafeTo(new Vector2d(-13,-13))
+
                 .build();
-        Action tab5 = drive.actionBuilder(drive.localizer.getPose())
+        Action tab4 = drive.actionBuilder(new Pose2d(-13,-13,Math.toRadians(270)))
+
+                .strafeToLinearHeading(new Vector2d(13,-28),Math.toRadians(270))
+                .strafeTo(new Vector2d(13,-53), new TranslationalVelConstraint(15.0))
+
+                .build();
+        Action tab5 = drive.actionBuilder(new Pose2d(13,-53,Math.toRadians(270)))
                 .strafeToLinearHeading(new Vector2d(-13,-13), Math.toRadians(270))
                 .build();
-        Action tab6 = drive.actionBuilder(drive.localizer.getPose())
-                .strafeToLinearHeading(new Vector2d(36,-12),Math.toRadians(270))
-                .strafeTo(new Vector2d(36,-53))
+        Action tab6 = drive.actionBuilder(new Pose2d(-13,-13,Math.toRadians(270)))
+
+                .strafeToLinearHeading(new Vector2d(10,-35),Math.toRadians(270))
+                .strafeToLinearHeading(new Vector2d(38,-35),Math.toRadians(270))
+
+                .strafeTo(new Vector2d(38,-53), new TranslationalVelConstraint(20.0))
+                .build();
+        Action tab7 = drive.actionBuilder(new Pose2d(36,-53,Math.toRadians(270)))
+                .strafeToLinearHeading(new Vector2d(-13,-13),Math.toRadians(270))
                 .build();
         if (opModeIsActive()) {
             Actions.runBlocking(
@@ -315,7 +330,8 @@ public class Auto2025BlueNear extends LinearOpMode {
                                     new ParallelAction(
                                             intake.takeBall(),
                                             tab6
-                                    )
+                                    ),
+                                    tab7
                             )
                     )
             );

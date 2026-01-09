@@ -8,6 +8,7 @@ import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.arcrobotics.ftclib.controller.PIDController;
@@ -36,6 +37,7 @@ import java.util.List;
 @Autonomous(name = "Auto2025RedNear")
 public class Auto2025RedNear extends LinearOpMode {
     public DcMotorEx launch, turretMotor, trans;
+    public Servo hood;
     public ColorSensor c1,c2,c3;
     private DcMotor intake;
     private PIDController controller;
@@ -44,8 +46,9 @@ public class Auto2025RedNear extends LinearOpMode {
 
     public static double p2 = 0.0025, i2 = 0.000001, d2 =0.0001;
 
-    public static int targetVel = -1600;
+    public static int targetVel = -1250;
     public static int targetAngle = 0;
+
     public class Launcher {
         public Launcher(HardwareMap hardwareMap) {
             launch = hardwareMap.get(DcMotorEx.class, "launch");
@@ -55,14 +58,25 @@ public class Auto2025RedNear extends LinearOpMode {
             intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             trans = hardwareMap.get(DcMotorEx.class, "trans");
             trans.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            hood = hardwareMap.get(Servo.class, "hood");
         }
 
         public class launcherAction implements Action {
             private boolean init = false;
             ElapsedTime timer = new ElapsedTime();
+            //timer.reset();
             @Override
+
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+
+                telemetry.addData("Launch Velocoty", launch.getVelocity());
+                telemetry.addData("Launch pwer", launch.getPower());
+                telemetry.addData("timer", timer);
+
+
+                telemetry.update();
                 if(!init) {
+                    timer.reset();
                     init = true;
                     controller.setPID(p1, i1, d1);
                 }
@@ -71,15 +85,18 @@ public class Auto2025RedNear extends LinearOpMode {
                 //double ff = Math.cos(Math.toRadians(targetVel /ticks_in_degrees)) * f1;
                 double power = pid;
                 launch.setPower(power);
-                if (launch.getVelocity() <= -1590) { //1585
-                    trans.setPower(1);
+                hood.setPosition(1);
+                if (launch.getVelocity() <= -1150) { //1585
+
+                    trans.setPower(-1);
                     intake.setPower(-0.6);
-                } else if (launch.getVelocity() >= -1590) {
+
+                } else if (launch.getVelocity() >= -1150) {
                     trans.setPower(0);
                     intake.setPower(0);
                 }
                 telemetryPacket.put("time",timer.seconds());
-                if(timer.seconds() < 3){
+                if(timer.seconds() < 5){
                     return true;
                 }
                 else{
@@ -155,9 +172,10 @@ public class Auto2025RedNear extends LinearOpMode {
             ElapsedTime timer;
 
             @Override
+
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 if (!init) {
-                    trans.setPower(1);
+                    trans.setPower(-0.18);
                     intake.setPower(-1);
                     init = true;
                     timer = new ElapsedTime();
@@ -272,25 +290,34 @@ public class Auto2025RedNear extends LinearOpMode {
 //                .turn(Math.toRadians(70))
                         .build();
         Action tab2 = drive.actionBuilder(new Pose2d(-13,13,Math.toRadians(90)))//set var constraint later
-//                .waitSeconds(5)
-                .waitSeconds(1.5)
-                .strafeTo(new Vector2d(-13,53))
+
+//              .waitSeconds(5)
+
+                .strafeTo(new Vector2d(-14,53), new TranslationalVelConstraint(15.0))
                 .build();
-        Action tab3 = drive.actionBuilder(new Pose2d(-13,53,Math.toRadians(90)))
-                .waitSeconds(1.5)
+        Action tab3 = drive.actionBuilder(new Pose2d(-14,53,Math.toRadians(90)))
+                //.waitSeconds(1.5)
                 .strafeTo(new Vector2d(-13,13))
+
                 .build();
-        Action tab4 = drive.actionBuilder(drive.localizer.getPose())
-                .strafeToLinearHeading(new Vector2d(12,28),Math.toRadians(90))
-                .strafeTo(new Vector2d(12.25,53))
+        Action tab4 = drive.actionBuilder(new Pose2d(-13,13,Math.toRadians(90)))
+                //.waitSeconds(5)
+                .strafeToLinearHeading(new Vector2d(13,28),Math.toRadians(90))
+                .strafeTo(new Vector2d(13,53), new TranslationalVelConstraint(15.0))
 //                .waitSeconds(2.5)
                 .build();
-        Action tab5 = drive.actionBuilder(drive.localizer.getPose())
+        Action tab5 = drive.actionBuilder(new Pose2d(13,53,Math.toRadians(90)))
                 .strafeToLinearHeading(new Vector2d(-13,13), Math.toRadians(90))
                 .build();
-        Action tab6 = drive.actionBuilder(drive.localizer.getPose())
-                .strafeToLinearHeading(new Vector2d(36,13),Math.toRadians(90))
-                .strafeTo(new Vector2d(36,53))
+        Action tab6 = drive.actionBuilder(new Pose2d(-13,13,Math.toRadians(90)))
+                //.waitSeconds(5)
+                .strafeToLinearHeading(new Vector2d(10,35),Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(38,35),Math.toRadians(90))
+
+                .strafeTo(new Vector2d(38,53), new TranslationalVelConstraint(20.0))
+                .build();
+        Action tab7 = drive.actionBuilder(new Pose2d(36,53,Math.toRadians(90)))
+                .strafeToLinearHeading(new Vector2d(-13,13),Math.toRadians(90))
                 .build();
         if (opModeIsActive()) {
             Actions.runBlocking(
@@ -306,18 +333,20 @@ public class Auto2025RedNear extends LinearOpMode {
                                             intake.takeBall(),
                                             tab2
                                     ),
-                                    tab3
-//                                    launcher.fireBall(),
-//                                    new ParallelAction(
-//                                            intake.takeBall(),
-//                                            tab4
-//                                    ),
-//                                    tab5,
-//                                    launcher.fireBall(),
-//                                    new ParallelAction(
-//                                            intake.takeBall(),
-//                                            tab6
-//                                    )
+                                    tab3,
+
+                                    launcher.fireBall(),
+                                    new ParallelAction(
+                                            intake.takeBall(),
+                                            tab4
+                                    ),
+                                    tab5,
+                                    launcher.fireBall(),
+                                    new ParallelAction(
+                                            intake.takeBall(),
+                                            tab6,
+                                    tab7
+                                    )
                            )
                     )
             );
@@ -327,6 +356,7 @@ public class Auto2025RedNear extends LinearOpMode {
                 //telemetryAprilTag();
 
                 // Push telemetry to the Driver Station.
+                telemetry.addData("Launch Velocoty", launch.getVelocity());
                 telemetry.update();
 
                 // Save CPU resources; can resume streaming when needed.
