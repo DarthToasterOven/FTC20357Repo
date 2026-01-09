@@ -59,6 +59,9 @@ public class Turret {
 
         //Hard limit originally was supposed to be a wrap around
 
+        if(Math.abs(currentAngle) > 180){
+            targetAngle = (targetAngle-10)*-1;
+        }
 
 
         power = controller.calculate(motorPosition, targetPos);

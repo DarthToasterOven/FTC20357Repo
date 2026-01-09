@@ -5,6 +5,7 @@ import android.util.Size;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -29,6 +30,7 @@ public class MainDrive extends LinearOpMode {
     DriveTrain drivetrain;
     IntakeV2 intake;
     Turret turret;
+    public ColorSensor c3;
     List<LynxModule> allHubs;
     private boolean lockedOn = false;
     @Override

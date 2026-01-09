@@ -46,7 +46,7 @@ public class Auto2025RedNear extends LinearOpMode {
 
     public static double p2 = 0.0025, i2 = 0.000001, d2 =0.0001;
 
-    public static int targetVel = -1350;
+    public static int targetVel = -1390;
     public static int targetAngle = 0;
 
     public class Launcher {
@@ -87,17 +87,17 @@ public class Auto2025RedNear extends LinearOpMode {
                 double power = pid;
                 launch.setPower(power);
                 hood.setPosition(0.8);
-                if (launch.getVelocity() <= -1300) { //1585
+                if (launch.getVelocity() <= -1360) { //1585
 
                     trans.setPower(-1);
                     intake.setPower(-0.6);
 
-                } else if (launch.getVelocity() >= -1300) {
+                } else if (launch.getVelocity() >= -1360) {
                     trans.setPower(0);
                     intake.setPower(0);
                 }
                 telemetryPacket.put("time",timer.seconds());
-                if(timer.seconds() < 5){
+                if(timer.seconds() < 4){
                     return true;
                 }
                 else{
@@ -294,7 +294,7 @@ public class Auto2025RedNear extends LinearOpMode {
 
 //              .waitSeconds(5)
 
-                .strafeTo(new Vector2d(-13,58), new TranslationalVelConstraint(25.0))
+                .strafeTo(new Vector2d(-13,58), new TranslationalVelConstraint(15.0))
                 .build();
         Action tab3 = drive.actionBuilder(new Pose2d(-14,53,Math.toRadians(90)))
                 //.waitSeconds(1.5)
@@ -304,7 +304,7 @@ public class Auto2025RedNear extends LinearOpMode {
         Action tab4 = drive.actionBuilder(new Pose2d(-13,13,Math.toRadians(90)))
                 //.waitSeconds(5)
                 .strafeToLinearHeading(new Vector2d(13,28),Math.toRadians(90))
-                .strafeTo(new Vector2d(13,63), new TranslationalVelConstraint(25.0))
+                .strafeTo(new Vector2d(13,63), new TranslationalVelConstraint(15.0))
 //                .waitSeconds(2.5)
                 .build();
         Action tab5 = drive.actionBuilder(new Pose2d(13,60,Math.toRadians(90)))
@@ -315,7 +315,7 @@ public class Auto2025RedNear extends LinearOpMode {
                 .strafeToLinearHeading(new Vector2d(10,35),Math.toRadians(90))
                 .strafeToLinearHeading(new Vector2d(38,35),Math.toRadians(90))
 
-                .strafeTo(new Vector2d(38,53), new TranslationalVelConstraint(25.0))
+                .strafeTo(new Vector2d(38,53), new TranslationalVelConstraint(15.0))
                 .build();
         Action tab7 = drive.actionBuilder(new Pose2d(36,53,Math.toRadians(90)))
                 .strafeToLinearHeading(new Vector2d(-13,13),Math.toRadians(90))
