@@ -52,13 +52,11 @@ public class MainDrive extends LinearOpMode {
             initTelemetry();
             telemetryAprilTag();
             turret.runTurret();
-            lockOn();
+            //lockOn();
             intake.runlauncher();
             intake.runIntake();
             intake.sheTransOnMyFerUntilI();
-            if(gamepad2.startWasPressed()){
-                terminateOpModeNow();
-            }
+
         }
     }
 
@@ -79,6 +77,7 @@ public class MainDrive extends LinearOpMode {
                 // to load a predefined calibration for your camera.
                 //.setLensIntrinsics(578.272, 578.272, 402.145, 221.506)
                 // ... these parameters are fx, fy, cx, cy.
+                .setLensIntrinsics(909.963833736,909.963833736,634.495942075,347.541434786)
 
                 .build();
 
@@ -129,6 +128,9 @@ public class MainDrive extends LinearOpMode {
     private void initTelemetry () {
 //        telemetry.addData("Toggle",drivetrain.getXToggle());
 //        telemetry.addData("Toggle",drivetrain.getRToggle());
+        if(Math.abs(turret.getTurretAngle()) > 180){
+            telemetry.addLine("Maharaga help me");
+        }
         telemetry.addData("Color sensor red", intake.c3.red());
         telemetry.addData("Color sensor green", intake.c3.green());
         telemetry.addData("Color sensor blue", intake.c3.blue());
@@ -147,19 +149,23 @@ public class MainDrive extends LinearOpMode {
     }
     private void lockOn(){
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-        for(AprilTagDetection detection: currentDetections){
-            if(gamepad2.yWasPressed()){
+        for(AprilTagDetection detection: currentDetections) {
+            if (gamepad2.yWasPressed()) {
                 lockedOn = true;
-            }
-            else if(gamepad2.bWasPressed()){
+            } else if (gamepad2.bWasPressed()) {
                 lockedOn = false;
             }
-            if(detection.metadata != null && lockedOn){// Checks if there is a detection and that the lockon is active
-                turret.setAngle(turret.getTurretAngle());
+            if (detection.metadata != null && lockedOn && (detection.id == 24 || detection.id == 20)) {// Checks if there is a detection and that the lockon is active
+                if (detection.ftcPose.yaw > 5) {
+                    turret.setAngle(turret.targetAngle + 3);
+                }
+                if (detection.ftcPose.yaw < -10) {
+                    turret.setAngle(turret.targetAngle - 5);
+                }
+
+
             }
-
         }
-
     }
     private void telemetryAprilTag() {
 

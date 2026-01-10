@@ -46,7 +46,7 @@ public class Auto2025BlueNear extends LinearOpMode {
 
     public static double p2 = 0.0025, i2 = 0.000001, d2 =0.0001;
 
-    public static int targetVel = -1600;
+    public static int targetVel = -1480;
     public static int targetAngle = 0;
 
     public class Launcher {
@@ -64,27 +64,40 @@ public class Auto2025BlueNear extends LinearOpMode {
         public class launcherAction implements Action {
             private boolean init = false;
             ElapsedTime timer = new ElapsedTime();
+            //timer.reset();
             @Override
+
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+
+                telemetry.addData("Launch Velocoty", launch.getVelocity());
+                telemetry.addData("Launch pwer", launch.getPower());
+                telemetry.addData("timer", timer);
+
+
+                telemetry.update();
                 if(!init) {
                     timer.reset();
                     init = true;
                     controller.setPID(p1, i1, d1);
+                    hood.setPosition(0.8);
                 }
                 double launchVel = launch.getVelocity();
                 double pid = controller.calculate(launchVel, targetVel);
                 //double ff = Math.cos(Math.toRadians(targetVel /ticks_in_degrees)) * f1;
                 double power = pid;
                 launch.setPower(power);
-                if (launch.getVelocity() <= -1590) { //1585
-                    trans.setPower(1);
-                    intake.setPower(-0.6);
-                } else if (launch.getVelocity() >= -1590) {
+                hood.setPosition(0.85);
+                if (launch.getVelocity() <= -1430) { //1585
+
+                    trans.setPower(-1);
+                    intake.setPower(-0.7);
+
+                } else if (launch.getVelocity() >= -1430) {
                     trans.setPower(0);
                     intake.setPower(0);
                 }
                 telemetryPacket.put("time",timer.seconds());
-                if(timer.seconds() < 8){
+                if(timer.seconds() < 4){
                     return true;
                 }
                 else{
@@ -122,19 +135,16 @@ public class Auto2025BlueNear extends LinearOpMode {
 
             @Override
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-                double Currentangle = (turretMotor.getCurrentPosition()/384.5)*360*(2.0/5.0) + botHeading;
+                double Currentangle = (turretMotor.getCurrentPosition()/384.5)*360*(2.0/5.0);
                 double ticks = (384.5 * targetAngle + botHeading) / 360.0 * (5.0 / 2.0);;
                 double motorPosition = turretMotor.getCurrentPosition();
                 double pid = controller.calculate(motorPosition, ticks);
                 double power = pid;
                 turretMotor.setPower(power);
-                if(Currentangle > 360){
-                    targetAngle = 0;
-                }
                 return true;
             }
         }
-        public Action turretAction(){return  new turretAction();}
+        public Action turretAction(){return turretAction();}
         public Action changeAngle(int target){return new InstantAction(()-> targetAngle = target);
         }
     }
@@ -160,15 +170,16 @@ public class Auto2025BlueNear extends LinearOpMode {
             ElapsedTime timer;
 
             @Override
+
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 if (!init) {
-                    trans.setPower(1);
-                    intake.setPower(1);
+                    trans.setPower(-0.18);
+                    intake.setPower(-1);
                     init = true;
                     timer = new ElapsedTime();
                 }
 
-                if(timer.seconds() < 10 ){
+                if(timer.seconds() < 4.5 ){
                     return true;
                 }
                 else{
@@ -194,6 +205,7 @@ public class Auto2025BlueNear extends LinearOpMode {
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 //logic here for color sensors
                 return stored.size() == 3;
+
             }
         }
     }
@@ -254,6 +266,7 @@ public class Auto2025BlueNear extends LinearOpMode {
 
     ArrayList<String> stored = new ArrayList<>();
     ArrayList<String> motif = new ArrayList<>();
+
     @Override
     public void runOpMode() {
 
@@ -279,7 +292,7 @@ public class Auto2025BlueNear extends LinearOpMode {
 
 
 
-                .strafeTo(new Vector2d(-14,-53), new TranslationalVelConstraint(15.0))
+                .strafeTo(new Vector2d(-13,-58), new TranslationalVelConstraint(15.0))
                 .build();
         Action tab3 = drive.actionBuilder(new Pose2d(-14,-53,Math.toRadians(270)))
 
@@ -289,10 +302,10 @@ public class Auto2025BlueNear extends LinearOpMode {
         Action tab4 = drive.actionBuilder(new Pose2d(-13,-13,Math.toRadians(270)))
 
                 .strafeToLinearHeading(new Vector2d(13,-28),Math.toRadians(270))
-                .strafeTo(new Vector2d(13,-53), new TranslationalVelConstraint(15.0))
+                .strafeTo(new Vector2d(13,-60), new TranslationalVelConstraint(15.0))
 
                 .build();
-        Action tab5 = drive.actionBuilder(new Pose2d(13,-53,Math.toRadians(270)))
+        Action tab5 = drive.actionBuilder(new Pose2d(13,-60,Math.toRadians(270)))
                 .strafeToLinearHeading(new Vector2d(-13,-13), Math.toRadians(270))
                 .build();
         Action tab6 = drive.actionBuilder(new Pose2d(-13,-13,Math.toRadians(270)))
@@ -302,17 +315,17 @@ public class Auto2025BlueNear extends LinearOpMode {
 
                 .strafeTo(new Vector2d(38,-53), new TranslationalVelConstraint(20.0))
                 .build();
-        Action tab7 = drive.actionBuilder(new Pose2d(36,-53,Math.toRadians(270)))
+        Action tab7 = drive.actionBuilder(new Pose2d(38,-53,Math.toRadians(270)))
                 .strafeToLinearHeading(new Vector2d(-13,-13),Math.toRadians(270))
                 .build();
         if (opModeIsActive()) {
             Actions.runBlocking(
                     new ParallelAction(
-                            turret.turretAction(),
+                        //    turret.turretAction(),
                             new SequentialAction(
-                                    turret.changeAngle(-135), //135 is a placeholder, change to angle of where the motif is
-                                    scanMotif(),
-                                    turret.changeAngle(45),
+                                    //turret.changeAngle(-135), //135 is a placeholder, change to angle of where the motif is
+                                    //scanMotif(),
+                                    //turret.changeAngle(0),
                                     tab1, // move to launch position
                                     launcher.fireBall(),
                                     new ParallelAction(

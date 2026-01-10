@@ -44,10 +44,11 @@ public class Auto2025RedNear extends LinearOpMode {
 
     public static double p1 = 0.009, i1 = 0.45, d1 = 0;
 
-    public static double p2 = 0.0025, i2 = 0.000001, d2 =0.0001;
+    public static double p2 = 0.006012 , i2 = 0.00065, d2 = 0.0004314;
 
     public static int targetVel = -1390;
     public static int targetAngle = 0;
+
 
     public class Launcher {
         public Launcher(HardwareMap hardwareMap) {
@@ -90,7 +91,7 @@ public class Auto2025RedNear extends LinearOpMode {
                 if (launch.getVelocity() <= -1360) { //1585
 
                     trans.setPower(-1);
-                    intake.setPower(-0.6);
+                    intake.setPower(-0.7);
 
                 } else if (launch.getVelocity() >= -1360) {
                     trans.setPower(0);
@@ -119,7 +120,6 @@ public class Auto2025RedNear extends LinearOpMode {
             turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             controller = new PIDController(p2, i2, d2);
-            controller.setPID(p2, i2, d2);
             imu = hardwareMap.get(IMU.class, "imu");
             IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                     RevHubOrientationOnRobot.LogoFacingDirection.UP,
@@ -127,30 +127,38 @@ public class Auto2025RedNear extends LinearOpMode {
             ));
 
             imu.initialize(parameters);
-            imu.resetYaw();
 
         }
         public class turretAction implements Action{
-            double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
+            private boolean init = false;
             @Override
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-                double Currentangle = (turretMotor.getCurrentPosition()/384.5)*360*(2.0/5.0) + botHeading;
-                double ticks = (384.5 * targetAngle + botHeading) / 360.0 * (5.0 / 2.0);;
-                double motorPosition = turretMotor.getCurrentPosition();
-                double pid = controller.calculate(motorPosition, ticks);
-                double power = pid;
-                turretMotor.setPower(power);
-                if(Currentangle > 360){
-                    targetAngle = 0;
+                if(!init){
+                    controller.setPID(p2,i2,d2);
+                    init = true;
                 }
+                double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+
+                //Calculates the turret's angle and converts the targetAngle to the motor ticks
+                double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 180.0 * (2.0/5.0)+ (botHeading/2);
+
+                double targetPos = (384.5 * targetAngle + (int)botHeading/2) / 180.0 * (5.0 / 2.0);
+                int motorPosition = turretMotor.getCurrentPosition();
+
+                //Hard limit originally was supposed to be a wrap around
+
+
+                double power = controller.calculate(motorPosition, targetPos);
+                turretMotor.setPower(power);
                 return true;
             }
         }
-        public Action turretAction(){return turretAction();}
+        public Action turretGo(){return new turretAction();}
         public Action changeAngle(int target){return new InstantAction(()-> targetAngle = target);
         }
     }
+
     public class sensors implements Action{
 
         @Override
@@ -265,6 +273,7 @@ public class Auto2025RedNear extends LinearOpMode {
     /**
      * The variable to store our instance of the vision portal.
      */
+
     private VisionPortal visionPortal;
 
     ArrayList<String> stored = new ArrayList<>();
@@ -318,15 +327,15 @@ public class Auto2025RedNear extends LinearOpMode {
 
                 .strafeTo(new Vector2d(38,53), new TranslationalVelConstraint(15.0))
                 .build();
-        Action tab7 = drive.actionBuilder(new Pose2d(36,53,Math.toRadians(90)))
+        Action tab7 = drive.actionBuilder(new Pose2d(38,53,Math.toRadians(90)))
                 .strafeToLinearHeading(new Vector2d(-13,13),Math.toRadians(90))
                 .build();
         if (opModeIsActive()) {
             Actions.runBlocking(
                     new ParallelAction(
-//                            turret.turretAction(),
+                            turret.turretGo(),
                             new SequentialAction(
-//                                    turret.changeAngle(135), //45 is a placeholder, change to angle of where the motif is
+                                    turret.changeAngle(23), //45 is a placeholder, change to angle of where the motif is
 ////                                    scanMotif(),
 //                                    turret.changeAngle(45),
                                     tab1, // move to launch position
@@ -346,9 +355,9 @@ public class Auto2025RedNear extends LinearOpMode {
                                     launcher.fireBall(),
                                     new ParallelAction(
                                             intake.takeBall(),
-                                            tab6,
+                                            tab6
+                                    ),
                                     tab7
-                                    )
                            )
                     )
             );

@@ -13,11 +13,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.opencv.core.Mat;
 
 public class Turret {
-    public static double p1 = 0.002 , i1 = 0.00075, d1 = 0.000015;
+    public static double p1 = 0.006012 , i1 = 0.00065, d1 = 0.0004314;
 
     private DcMotorEx turretMotor;
     private PIDController controller;
-    public int targetAngle = 0;
+    public double targetAngle = 0;
     public double motorPosition;
     double gearRatio = 2.0 / 5.0;
     private
@@ -50,28 +50,30 @@ public class Turret {
         double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
         //Calculates the turret's angle and converts the targetAngle to the motor ticks
-        double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360.0 * gearRatio + botHeading;
+        double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 180.0 * gearRatio + (botHeading/2);
 
-        targetPos = (384.5 * (targetAngle + (int)botHeading)) / 360.0 * (5.0 / 2.0);
+        targetPos = (384.5 * targetAngle + botHeading / 2.0) / 180.0 * (5.0 / 2.0);
         motorPosition = turretMotor.getCurrentPosition();
 
         //Hard limit originally was supposed to be a wrap around
-        if(Math.abs(currentAngle) > 180){
-            targetAngle = (int)botHeading;
-        }
-
 
 
         power = controller.calculate(motorPosition, targetPos);
 
         turretMotor.setPower(power);
-
-        if (Math.abs(gamepad2.left_stick_x) > 0.1) {
-            turretMotor.setPower(gamepad2.left_stick_x *0.25);
-            targetAngle = (int)currentAngle;
+        if((Math.abs(currentAngle) > 85)){
+            targetAngle = -targetAngle +Math.copySign(5,targetAngle);
         }
 
+        if (Math.abs(gamepad2.left_stick_x) > 0.1) {
+            targetAngle += gamepad2.left_stick_x *4;
+        }
 
+        /*if(gamepad2.backWasPressed()){
+            turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            targetAngle = 0;
+        }*/
 
     }
 
@@ -80,7 +82,7 @@ public class Turret {
     }
 
     public double getTurretAngle() {
-        return (turretMotor.getCurrentPosition() / 384.5) * 360 * gearRatio + botHeading;
+        return (turretMotor.getCurrentPosition() / 384.5) * 180 * gearRatio + (botHeading/2);
     }
 }
 

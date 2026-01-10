@@ -25,6 +25,7 @@ public class IntakeV2 {
     public static double f1 = 0;
     public static int targetVel = -1600;
     private Gamepad gamepad2;
+    public int threshold = -1500;
 
     public IntakeV2(HardwareMap hardwareMap, Gamepad gamepad, Gamepad gamepadA) {
         gamepad1 = gamepad;
@@ -58,17 +59,22 @@ public class IntakeV2 {
             launch.setPower(0);
         }
 
-        if (gamepad2.right_trigger > 0.1 && launch.getVelocity()>= targetVel) {//reverse launcher if it gets stuck
-            trans.setPower(1);
+        if (gamepad2.right_trigger > 0.1){
+            if (launch.getVelocity() <= threshold) { //threshold velocity
+                trans.setPower(1);
+                intakeMotor.setPower(-1);
+            }
         }
         else{
             trans.setPower(0);
         }
         // Allows for increasing and decreasing of launch speed
         if (gamepad2.dpadUpWasPressed()) {
-            targetVel -= 50; // increases speed
+            targetVel -= 50;// increases speed
+            threshold -=50;
         } else if (gamepad2.dpadDownWasPressed()) {
             targetVel += 50; // decreases speed
+            threshold +=50;
         }
 
 
@@ -113,11 +119,11 @@ public class IntakeV2 {
     }
 
     public void sheTransOnMyFerUntilI(){
-        if(gamepad1.right_bumper){
-            trans.setPower(0.4);
+        if(gamepad1.right_bumper &&  c3.blue() < 150){
+            trans.setPower(0.6);
         }
         if(gamepad1.left_bumper){
-            trans.setPower(-0.4);
+            trans.setPower(-0.6);
         }
 
         if(gamepad1.leftBumperWasReleased() || gamepad1.rightBumperWasReleased()){

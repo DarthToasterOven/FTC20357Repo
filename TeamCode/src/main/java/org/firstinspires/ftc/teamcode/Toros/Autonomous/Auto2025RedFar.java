@@ -4,21 +4,26 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.RR.MecanumDrive;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -29,15 +34,19 @@ import java.util.List;
 
 @Autonomous(name = "Auto2025RedFar")
 public class Auto2025RedFar extends LinearOpMode {
-    public DcMotorEx launch;
+    public DcMotorEx launch, turretMotor, trans;
+    public Servo hood;
+    public ColorSensor c1,c2,c3;
     private DcMotor intake;
     private PIDController controller;
 
     public static double p1 = 0.009, i1 = 0.45, d1 = 0;
 
-    public static double f1 = 0;
+    public static double p2 = 0.0025, i2 = 0.000001, d2 =0.0001;
 
-    public static int targetVel = -1600;
+    public static int targetVel = -1720;
+    public static int targetAngle = 0;
+
 
     public class Launcher {
         public Launcher(HardwareMap hardwareMap) {
@@ -46,6 +55,9 @@ public class Auto2025RedFar extends LinearOpMode {
             controller = new PIDController(p1,i1,d1);
             intake = hardwareMap.get(DcMotor.class, "intake");
             intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            trans = hardwareMap.get(DcMotorEx.class, "trans");
+            trans.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            hood = hardwareMap.get(Servo.class, "hood");
         }
 
         public class launcherAction implements Action {
@@ -54,8 +66,10 @@ public class Auto2025RedFar extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 if(!init) {
+                    timer.reset();
                     init = true;
                     controller.setPID(p1, i1, d1);
+                    hood.setPosition(0.8);
                 }
                 double launchVel = launch.getVelocity();
                 double pid = controller.calculate(launchVel, targetVel);
@@ -63,17 +77,22 @@ public class Auto2025RedFar extends LinearOpMode {
                 double power = pid;
                 launch.setPower(power);
                 telemetryPacket.put("time",timer.seconds());
-                if (launch.getVelocity() <= -1590) { //1585
-                    intake.setPower(-0.6);
-                } else if (launch.getVelocity() >= -1590) {
+                hood.setPosition(1);
+                if (launch.getVelocity() <= -1630) { //1585
+
+                    trans.setPower(-1);
+                    intake.setPower(-0.7);
+
+                } else if (launch.getVelocity() >= -1630) {
+                    trans.setPower(0);
                     intake.setPower(0);
                 }
-                if(timer.seconds() < 8){
+                telemetryPacket.put("time",timer.seconds());
+                if(timer.seconds() < 6){
                     return true;
                 }
                 else{
                     launch.setPower(0);
-                    intake.setPower(0);
                     return false;
                 }
             }
@@ -85,6 +104,45 @@ public class Auto2025RedFar extends LinearOpMode {
     }
 
 
+    IMU imu;
+    public class Turret{
+        public Turret(HardwareMap hardwareMap){
+            turretMotor = hardwareMap.get(DcMotorEx.class,"turret");
+            turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            controller = new PIDController(p2, i2, d2);
+            imu = hardwareMap.get(IMU.class, "imu");
+            IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                    RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                    RevHubOrientationOnRobot.UsbFacingDirection.LEFT
+            ));
+
+            imu.initialize(parameters);
+
+        }
+        public class turretAction implements Action{
+
+            private boolean init = false;
+            @Override
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                if(!init){
+                    controller.setPID(p2,i2,d2);
+                    init = true;
+                }
+                double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+                double Currentangle = (turretMotor.getCurrentPosition()/384.5)*180*(2.0/5.0);
+                double ticks = (384.5 * targetAngle + botHeading) / 180 * (5.0 / 2.0);;
+                double motorPosition = turretMotor.getCurrentPosition();
+                double pid = controller.calculate(motorPosition, ticks);
+                double power = pid;
+                turretMotor.setPower(power);
+                return true;
+            }
+        }
+        public Action turretGo(){return new turretAction();}
+        public Action changeAngle(int target){return new InstantAction(()-> targetAngle = target);
+        }
+    }
 
 
     public class Intake {
@@ -92,6 +150,8 @@ public class Auto2025RedFar extends LinearOpMode {
         public Intake(HardwareMap hardwareMap) {
             intake = hardwareMap.get(DcMotor.class, "intake");
             intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            trans = hardwareMap.get(DcMotorEx.class, "trans");
+            trans.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             //add color sensor
         }
         public class intakeAction implements Action {
@@ -101,15 +161,17 @@ public class Auto2025RedFar extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 if (!init) {
-                    intake.setPower(1);
+                    trans.setPower(-0.18);
+                    intake.setPower(-1);
                     init = true;
                     timer = new ElapsedTime();
                 }
 
-                if(timer.seconds() < 10 ){
+                if(timer.seconds() < 3 ){
                     return true;
                 }
                 else{
+                    trans.setPower(0);
                     intake.setPower(0);
                     return false;
                 }
@@ -163,9 +225,10 @@ public class Auto2025RedFar extends LinearOpMode {
 
 
 //        initAprilTag();
-        Pose2d initialPose = new Pose2d(-61.25, 12, Math.toRadians(180));
+        Pose2d initialPose = new Pose2d(61.25, 12, Math.toRadians(180));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         Launcher launcher = new Launcher(hardwareMap);
+        Turret turret = new Turret(hardwareMap);
         Intake intake = new Intake(hardwareMap);
         // Wait for the DS start button to be touched.
         telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
@@ -175,7 +238,7 @@ public class Auto2025RedFar extends LinearOpMode {
         waitForStart();
 
         Action tab1 = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(-34,12),Math.toRadians(-235))
+                .strafeToLinearHeading(new Vector2d(48,12),Math.toRadians(180))
 //                .stopAndAdd(scanMotif())
 //                .turn(Math.toRadians(70))
                         .build();
@@ -202,8 +265,8 @@ public class Auto2025RedFar extends LinearOpMode {
         if (opModeIsActive()) {
             Actions.runBlocking(
                     new SequentialAction(
+                            launcher.fireBall(),
                             tab1
-//                            launcher.fireBall(),
 //                            new ParallelAction(
 //                                    tab2,
 //                                    intake.takeBall()
@@ -222,7 +285,7 @@ public class Auto2025RedFar extends LinearOpMode {
                     )
             );
             while (opModeIsActive()) {
-                telemetry.addData("motif",motif.get(1));
+//                telemetry.addData("motif",motif.get(1));
                 //telemetryAprilTag();
 
                 // Push telemetry to the Driver Station.
