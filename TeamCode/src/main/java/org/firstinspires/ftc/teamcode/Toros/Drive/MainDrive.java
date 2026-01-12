@@ -33,6 +33,7 @@ public class MainDrive extends LinearOpMode {
     public ColorSensor c3;
     List<LynxModule> allHubs;
     private boolean lockedOn = false;
+    private boolean mode = false;
     @Override
     public void runOpMode() throws InterruptedException {
         //Constructs the systems and makes them objects allowing to use a method to run the system and allows for other methods to be used
@@ -48,11 +49,19 @@ public class MainDrive extends LinearOpMode {
         waitForStart();
         // runs all of the systems
         while (opModeIsActive()){
-            drivetrain.drive();
+            if(mode) {
+                drivetrain.driveRobotCentric();
+            }
+            else{
+                drivetrain.driveFieldCentric();
+            }
+            if(gamepad1.bWasPressed()){
+                mode = !mode;
+            }
             initTelemetry();
             telemetryAprilTag();
             turret.runTurret();
-            //lockOn();
+            lockOn();
             intake.runlauncher();
             intake.runIntake();
             intake.sheTransOnMyFerUntilI();
@@ -126,43 +135,32 @@ public class MainDrive extends LinearOpMode {
     }   // end method initAprilTag()
     //Telemetry which is good for debugging and seeing how we preform
     private void initTelemetry () {
-//        telemetry.addData("Toggle",drivetrain.getXToggle());
-//        telemetry.addData("Toggle",drivetrain.getRToggle());
-        if(Math.abs(turret.getTurretAngle()) > 180){
-            telemetry.addLine("Maharaga help me");
-        }
+        telemetry.addData("Mode", mode);
+        telemetry.addData("Toggle",drivetrain.getXToggle());
+        telemetry.addData("Toggle",drivetrain.getRToggle());
         telemetry.addData("Color sensor red", intake.c3.red());
         telemetry.addData("Color sensor green", intake.c3.green());
         telemetry.addData("Color sensor blue", intake.c3.blue());
-        telemetry.addData("Color sensor alpha", intake.c3.alpha());
-        telemetry.addData("Color sensor arg", intake.c3.argb());
         telemetry.addData("launcher vel", intake.getLauncherSpeed());
-        telemetry.addData("gamepad trigger0",gamepad1.left_trigger);
         telemetry.addData("Angle", turret.getTurretAngle());
         telemetry.addData("heading", drivetrain.getHeading());
-        telemetry.addData("Target angle", turret.targetAngle);
-        telemetry.addData("Motor position", turret.motorPosition);
-        telemetry.addData("Target position,", turret.targetPos);
-        telemetry.addData("Motor Power", turret.power);
-        telemetry.addData("Current",intake.launch.getCurrent(CurrentUnit.AMPS));
         telemetry.update();
     }
     private void lockOn(){
+
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+
         for(AprilTagDetection detection: currentDetections) {
+
             if (gamepad2.yWasPressed()) {
                 lockedOn = true;
             } else if (gamepad2.bWasPressed()) {
                 lockedOn = false;
             }
-            if (detection.metadata != null && lockedOn && (detection.id == 24 || detection.id == 20)) {// Checks if there is a detection and that the lockon is active
-                if (detection.ftcPose.yaw > 5) {
-                    turret.setAngle(turret.targetAngle + 3);
+            if (detection.metadata != null && lockedOn && (detection.id == 24 || detection.id == 23)) {// Checks if there is a detection and that the lockon is active
+                if(Math.abs(detection.ftcPose.bearing) < 35 ) {
+                    turret.setAngle(turret.getTurretAngle() - detection.ftcPose.bearing * 0.75);
                 }
-                if (detection.ftcPose.yaw < -10) {
-                    turret.setAngle(turret.targetAngle - 5);
-                }
-
 
             }
         }

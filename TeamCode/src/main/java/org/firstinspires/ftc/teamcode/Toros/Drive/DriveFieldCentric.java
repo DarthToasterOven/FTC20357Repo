@@ -67,12 +67,12 @@ public class DriveFieldCentric extends LinearOpMode {
                     imu.resetYaw();
                 }
                 double y = -gamepad1.left_stick_y;
-                double x = gamepad1.left_stick_x;
+                double x = -gamepad1.left_stick_x;
                 double rx = gamepad1.right_stick_x;
 
                 double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-                double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
-                double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+                double rotX = x * Math.cos(botHeading) - y * Math.sin(botHeading);
+                double rotY = x * Math.sin(botHeading) + y * Math.cos(botHeading);
                 rotX = -rotX*1.1;
 
                 double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);

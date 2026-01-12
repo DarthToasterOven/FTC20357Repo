@@ -60,7 +60,7 @@ public class DriveTrain {
 
     }
 
-    public void drive (){
+    public void driveFieldCentric(){
         currentGamepad1.copy(gamepad1);
 
         //Our toggle to slow down either rotationally or just in the x or y directions
@@ -94,6 +94,47 @@ public class DriveTrain {
         else{
             turn*=1;
         }
+
+
+        //Calculates our rotation based off the heading and joystick input
+        //This creates that absolute direction of field centric as it rotates the vectors of the joysticks based off of the angles
+        //These vectors then determine how much we move in a direction
+        //In summary based of the angle the powers will be different changing how the robot moves
+
+        botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        double rotX = x * Math.cos(botHeading) - y * Math.sin(botHeading);
+        double rotY = x * Math.sin(botHeading) + y * Math.cos(botHeading);
+        rotX = -rotX*1.1;
+
+        //The denominator variable ensures a max value so as to not allocate extra unusable power to the robot
+        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(turn), 1);
+
+        //Now we combine all of our vectors to tell how the motors to turn
+        double frontLeftPower = (rotY + rotX + turn) / denominator;
+        double backLeftPower = (rotY - rotX + turn) / denominator;
+        double frontRightPower = (rotY - rotX - turn) / denominator;
+        double backRightPower = (rotY + rotX - turn) / denominator;
+
+
+        //reset imu button
+        if(gamepad1.start){
+            imu.resetYaw();
+        }
+
+        FrontLeftMotor.setPower(frontLeftPower);
+        BackLeftMotor.setPower(backLeftPower);
+        FrontRightMotor.setPower(frontRightPower);
+        BackRightMotor.setPower(backRightPower);
+
+
+
+    }
+
+    public void driveRobotCentric(){
+
+        double x = gamepad1.left_stick_x; // the *1.1 counteracts imperfect strafing
+        double y = -gamepad1.left_stick_y;
+        double turn = gamepad1.right_stick_x;
 
         double theta = Math.atan2(y, x);
         double power = Math.hypot(x, y);
@@ -141,39 +182,6 @@ public class DriveTrain {
         FrontRightMotor.setPower(fr);
         BackLeftMotor.setPower(bl);
         BackRightMotor.setPower(br);
-
-//        //Calculates our rotation based off the heading and joystick input
-//        //This creates that absolute direction of field centric as it rotates the vectors of the joysticks based off of the angles
-//        //These vectors then determine how much we move in a direction
-//        //In summary based of the angle the powers will be different changing how the robot moves
-//
-        botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
-//        double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
-//        double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
-//        rotX = -rotX*1.1;
-//
-//        //The denominator variable ensures a max value so as to not allocate extra unusable power to the robot
-//        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(turn), 1);
-//
-//        //Now we combine all of our vectors to tell how the motors to turn
-//        double frontLeftPower = (rotY + rotX + turn) / denominator;
-//        double backLeftPower = (rotY - rotX + turn) / denominator;
-//        double frontRightPower = (rotY - rotX - turn) / denominator;
-//        double backRightPower = (rotY + rotX - turn) / denominator;
-//
-//
-//        //reset imu button
-//        if(gamepad1.start){
-//            imu.resetYaw();
-//        }
-//
-//        FrontLeftMotor.setPower(frontLeftPower);
-//        BackLeftMotor.setPower(backLeftPower);
-//        FrontRightMotor.setPower(frontRightPower);
-//        BackRightMotor.setPower(backRightPower);
-
-
-
     }
 
 

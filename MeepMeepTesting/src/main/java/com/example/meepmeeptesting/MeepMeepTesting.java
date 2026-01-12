@@ -100,7 +100,7 @@ public class MeepMeepTesting {
                 .addEntity(myFirstBot)
                 .addEntity(mySecondBot)
         //       .addEntity(myThirdBot)
-                //.addEntity(myFourthBot)
+                .addEntity(myFourthBot)
                 .start();
     }
 }
