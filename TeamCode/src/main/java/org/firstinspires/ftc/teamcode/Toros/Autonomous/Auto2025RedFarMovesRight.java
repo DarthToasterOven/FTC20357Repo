@@ -32,8 +32,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.ArrayList;
 import java.util.List;
 
-@Autonomous(name = "Auto2025RedFar")
-public class Auto2025RedFar extends LinearOpMode {
+@Autonomous(name = "Auto2025RedFarMovesRight")
+public class Auto2025RedFarMovesRight extends LinearOpMode {
     public DcMotorEx launch, turretMotor, trans;
     public Servo hood;
     public ColorSensor c1,c2,c3;
@@ -44,7 +44,7 @@ public class Auto2025RedFar extends LinearOpMode {
 
     public static double p2 = 0.0025, i2 = 0.000001, d2 =0.0001;
 
-    public static int targetVel = -1770;
+    public static int targetVel = -1830;
     public static int targetAngle = 0;
 
 
@@ -78,17 +78,17 @@ public class Auto2025RedFar extends LinearOpMode {
                 launch.setPower(power);
                 telemetryPacket.put("time",timer.seconds());
                 hood.setPosition(1);
-                if (launch.getVelocity() <= -1680) { //1585
+                if (launch.getVelocity() <= -1730) { //1585
 
                     trans.setPower(-1);
                     intake.setPower(-0.7);
 
-                } else if (launch.getVelocity() >= -1680) {
+                } else if (launch.getVelocity() >= -1730) {
                     trans.setPower(0);
                     intake.setPower(0);
                 }
                 telemetryPacket.put("time",timer.seconds());
-                if(timer.seconds() < 6){
+                if(timer.seconds() < 12){
                     return true;
                 }
                 else{
@@ -238,10 +238,10 @@ public class Auto2025RedFar extends LinearOpMode {
         waitForStart();
 
         Action tab1 = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(48,12),Math.toRadians(180))
+                .strafeToLinearHeading(new Vector2d(60,30),Math.toRadians(180))
 //                .stopAndAdd(scanMotif())
 //                .turn(Math.toRadians(70))
-                        .build();
+                .build();
         Action tab2 = drive.actionBuilder(new Pose2d(-16,16,Math.toRadians(125)))//set var constraint later
 //                .waitSeconds(5)
                 .strafeToLinearHeading(new Vector2d(-11.5,28),Math.toRadians(-90))

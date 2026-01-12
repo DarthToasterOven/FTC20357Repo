@@ -141,7 +141,7 @@ public class Auto2025RedNear extends LinearOpMode {
                 double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
                 //Calculates the turret's angle and converts the targetAngle to the motor ticks
-                double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 180.0 * (2.0/5.0)+ (botHeading/2);
+                double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 180.0 * (2.0/5.0) + (botHeading/2);
 
                 double targetPos = (384.5 * targetAngle + (int)botHeading/2) / 180.0 * (5.0 / 2.0);
                 int motorPosition = turretMotor.getCurrentPosition();
@@ -333,9 +333,9 @@ public class Auto2025RedNear extends LinearOpMode {
         if (opModeIsActive()) {
             Actions.runBlocking(
                     new ParallelAction(
-                            turret.turretGo(),
+                            //turret.turretGo(),
                             new SequentialAction(
-                                    turret.changeAngle(23), //45 is a placeholder, change to angle of where the motif is
+                                    //turret.changeAngle(23), //45 is a placeholder, change to angle of where the motif is
 ////                                    scanMotif(),
 //                                    turret.changeAngle(45),
                                     tab1, // move to launch position
