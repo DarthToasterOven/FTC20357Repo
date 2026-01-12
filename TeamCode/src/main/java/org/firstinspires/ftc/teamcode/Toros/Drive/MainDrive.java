@@ -165,6 +165,24 @@ public class MainDrive extends LinearOpMode {
             }
         }
     }
+    /*
+    public static int[] calcLaunch(){
+
+       // int hoodAngle = (distance); // close = high,   far = 40 degrees
+        int[] launchVelocities = new int[2];
+        int k = 1;
+
+        int translationalFAST = Distance(Math.sqrt(9.81 / 2*Math.pow(Math.cos(hoodAngle), 2) * (distance*Math.tan(hoodAngle) - h)));
+        int translationalSLOW = formula; (hoodAngle: higher)
+
+        launchVelocities[0] = k * (translationalFAST * radius) * (28/2Math.PI);
+        launchVelocities[1] = k * (translationalSLOW * radius) * (28/2Math.PI);
+
+
+
+
+        return launchVelocities; //velocity
+    }*/
     private void telemetryAprilTag() {
 
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();

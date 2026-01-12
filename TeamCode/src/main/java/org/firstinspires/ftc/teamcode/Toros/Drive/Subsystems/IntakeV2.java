@@ -10,12 +10,16 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
 public class IntakeV2 {
     private DcMotorEx intakeMotor;
     public DcMotorEx launch;
     private Servo hood;
     private DcMotorEx trans;
     public ColorSensor c3;
+    private AprilTagProcessor aprilTag;
+
 
     Gamepad gamepad1;
     private PIDController controller;
@@ -41,6 +45,7 @@ public class IntakeV2 {
         controller = new PIDController(p1, i1, d1);
         controller.setPID(p1, i1, d1);
         c3 = hardwareMap.get(ColorSensor.class,"c3");
+
 
     }
 
@@ -133,5 +138,6 @@ public class IntakeV2 {
     public double getLauncherSpeed() {
         return launch.getVelocity();
     }
+
 }
 
