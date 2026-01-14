@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.IntakeV2;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.Turret;
@@ -33,7 +32,7 @@ public class MainDrive extends LinearOpMode {
     public ColorSensor c3;
     List<LynxModule> allHubs;
     private boolean lockedOn = false;
-    private boolean mode = false;
+    private boolean driveMode = false;
     @Override
     public void runOpMode() throws InterruptedException {
         //Constructs the systems and makes them objects allowing to use a method to run the system and allows for other methods to be used
@@ -49,14 +48,14 @@ public class MainDrive extends LinearOpMode {
         waitForStart();
         // runs all of the systems
         while (opModeIsActive()){
-            if(mode) {
+            if(driveMode) {
                 drivetrain.driveRobotCentric();
             }
             else{
                 drivetrain.driveFieldCentric();
             }
             if(gamepad1.bWasPressed()){
-                mode = !mode;
+                driveMode = !driveMode;
             }
             initTelemetry();
             telemetryAprilTag();
@@ -64,7 +63,7 @@ public class MainDrive extends LinearOpMode {
             lockOn();
             intake.runlauncher();
             intake.runIntake();
-            intake.sheTransOnMyFerUntilI();
+            intake.runTrans();
 
         }
     }
@@ -135,15 +134,15 @@ public class MainDrive extends LinearOpMode {
     }   // end method initAprilTag()
     //Telemetry which is good for debugging and seeing how we preform
     private void initTelemetry () {
-        telemetry.addData("Mode", mode);
-        telemetry.addData("Toggle",drivetrain.getXToggle());
-        telemetry.addData("Toggle",drivetrain.getRToggle());
+        telemetry.addData("Drive Mode", driveMode);
+        telemetry.addData("Translational brake",drivetrain.getXToggle());
+        telemetry.addData("Rotational brake ",drivetrain.getRToggle());
         telemetry.addData("Color sensor red", intake.c3.red());
         telemetry.addData("Color sensor green", intake.c3.green());
         telemetry.addData("Color sensor blue", intake.c3.blue());
-        telemetry.addData("launcher vel", intake.getLauncherSpeed());
-        telemetry.addData("Angle", turret.getTurretAngle());
-        telemetry.addData("heading", drivetrain.getHeading());
+        telemetry.addData("Launcher vel", intake.getLauncherSpeed());
+        telemetry.addData("Turret angle", turret.getTurretAngle());
+        telemetry.addData("Robot heading", drivetrain.getHeading());
         telemetry.update();
     }
     private void lockOn(){
@@ -208,3 +207,4 @@ public class MainDrive extends LinearOpMode {
 
     }
 }
+///:3

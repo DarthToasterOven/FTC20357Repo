@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems;
 
 import com.arcrobotics.ftclib.controller.PIDController;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -123,7 +122,7 @@ public class IntakeV2 {
 //        }
     }
 
-    public void sheTransOnMyFerUntilI(){
+    public void runTrans(){
         if(gamepad1.right_bumper &&  c3.blue() < 150){
             trans.setPower(0.6);
         }

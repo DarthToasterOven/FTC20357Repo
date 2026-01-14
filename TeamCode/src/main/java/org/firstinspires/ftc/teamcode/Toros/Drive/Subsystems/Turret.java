@@ -15,17 +15,14 @@ import org.opencv.core.Mat;
 
 public class Turret {
     public static double p1 = 0.006012 , i1 = 0.00065, d1 = 0.0004314;
-    double error = 0;
-    private DcMotorEx turretMotor;
-    private PIDController controller;
+    private final DcMotorEx turretMotor;
+    private final PIDController controller;
     public double targetAngle = 0;
     public double motorPosition;
     double gearRatio = 2.0 / 5.0;
-    private
-    Gamepad gamepad2;
+    private final Gamepad gamepad2;
     public double power;
     public double targetPos;
-    public double Zero = 0;
     IMU imu;
     public double botHeading;
     public Turret(HardwareMap hardwareMap, Gamepad gamepad) {
