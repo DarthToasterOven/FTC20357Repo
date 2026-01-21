@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode.Toros.Drive;
 
 import android.util.Size;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -9,7 +12,6 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.IntakeV2;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.Turret;
@@ -20,13 +22,14 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.List;
 
 @TeleOp(name = "MainDrive")
+@Config
 public class MainDrive extends LinearOpMode {
     // In our drive class we broke it down into subsystems to make it easier to read
     // All that needs to be done in the code is construct the subsystems and run their systems with a method
     private static final boolean USE_WEBCAM = true;
-    private AprilTagProcessor aprilTag;
-
-    private VisionPortal visionPortal;
+    public AprilTagProcessor aprilTag;
+    public String[] motif = new String[3];
+    public VisionPortal visionPortal;
     DriveTrain drivetrain;
     IntakeV2 intake;
     Turret turret;
@@ -41,11 +44,14 @@ public class MainDrive extends LinearOpMode {
         for(LynxModule hub: allHubs){
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
+        initAprilTag();
         telemetry.setMsTransmissionInterval(500);
         drivetrain = new DriveTrain(hardwareMap,gamepad1);
-        intake = new IntakeV2(hardwareMap, gamepad1, gamepad2);
+        intake = new IntakeV2(hardwareMap, gamepad1, gamepad2, aprilTag);
         turret = new Turret(hardwareMap,gamepad2);
-        initAprilTag();
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+
+
         waitForStart();
         // runs all of the systems
         while (opModeIsActive()){
@@ -58,18 +64,20 @@ public class MainDrive extends LinearOpMode {
             if(gamepad1.bWasPressed()){
                 mode = !mode;
             }
+
             initTelemetry();
             telemetryAprilTag();
+            getMotif();
             turret.runTurret();
             lockOn();
             intake.runlauncher();
             intake.runIntake();
-            intake.sheTransOnMyFerUntilI();
+            intake.transfer();
 
         }
     }
 
-    private void initAprilTag() {
+    public void initAprilTag() {
 
         // Create the AprilTag processor.
         aprilTag = new AprilTagProcessor.Builder()
@@ -135,7 +143,9 @@ public class MainDrive extends LinearOpMode {
     }   // end method initAprilTag()
     //Telemetry which is good for debugging and seeing how we preform
     private void initTelemetry () {
-        telemetry.addData("Mode", mode);
+        if(!mode) {
+            telemetry.addData("Mode", mode);
+        }
         telemetry.addData("Toggle",drivetrain.getXToggle());
         telemetry.addData("Toggle",drivetrain.getRToggle());
         telemetry.addData("Color sensor red", intake.c3.red());
@@ -144,6 +154,10 @@ public class MainDrive extends LinearOpMode {
         telemetry.addData("launcher vel", intake.getLauncherSpeed());
         telemetry.addData("Angle", turret.getTurretAngle());
         telemetry.addData("heading", drivetrain.getHeading());
+        telemetry.addData("targetVel", intake.getTargetVel());
+
+
+
         telemetry.update();
     }
     private void lockOn(){
@@ -158,31 +172,15 @@ public class MainDrive extends LinearOpMode {
                 lockedOn = false;
             }
             if (detection.metadata != null && lockedOn && (detection.id == 24 || detection.id == 23)) {// Checks if there is a detection and that the lockon is active
-                if(Math.abs(detection.ftcPose.bearing) < 35 ) {
-                    turret.setAngle(turret.getTurretAngle() - detection.ftcPose.bearing * 0.75);
+                if(Math.abs(detection.ftcPose.bearing) < 100 ) {// make higher??
+                    turret.setAngle((turret.getTurretAngle() - detection.ftcPose.bearing) * 0.75);
                 }
 
             }
         }
     }
-    /*
-    public static int[] calcLaunch(){
-
-       // int hoodAngle = (distance); // close = high,   far = 40 degrees
-        int[] launchVelocities = new int[2];
-        int k = 1;
-
-        int translationalFAST = Distance(Math.sqrt(9.81 / 2*Math.pow(Math.cos(hoodAngle), 2) * (distance*Math.tan(hoodAngle) - h)));
-        int translationalSLOW = formula; (hoodAngle: higher)
-
-        launchVelocities[0] = k * (translationalFAST * radius) * (28/2Math.PI);
-        launchVelocities[1] = k * (translationalSLOW * radius) * (28/2Math.PI);
 
 
-
-
-        return launchVelocities; //velocity
-    }*/
     private void telemetryAprilTag() {
 
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
@@ -194,7 +192,7 @@ public class MainDrive extends LinearOpMode {
                 telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
                 telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
                 telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
-                telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
+                telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (M, deg, deg)", (detection.ftcPose.range* 0.0254), detection.ftcPose.bearing, detection.ftcPose.elevation));
             } else {
                 telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
                 telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
@@ -207,4 +205,23 @@ public class MainDrive extends LinearOpMode {
         telemetry.addLine("RBE = Range, Bearing & Elevation");
 
     }
+
+    public String[] getMotif () {
+        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+
+        for (AprilTagDetection detection : currentDetections)
+            switch (detection.id) {
+
+                case 21 :  motif[0] = "green"; motif[1] = "purple"; motif[2] = "purple"; break;
+                case 22 :  motif[0] = "purple"; motif[1] = "green"; motif[2] = "purple"; break;
+                case 23 :  motif[0] = "purple"; motif[1] = "purple"; motif[2] = "green"; break;
+
+            }
+    return motif;
+    }
+
+
+
+
+
 }

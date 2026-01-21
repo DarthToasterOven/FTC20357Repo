@@ -65,7 +65,7 @@ public class Turret {
 
         turretMotor.setPower(power);
 
-        if(Math.abs(currentAngle) > 75 || Math.abs(targetAngle) > 75){
+        if(Math.abs(currentAngle) > 85 || Math.abs(targetAngle) > 85){
             targetAngle = -targetAngle + Math.copySign(5, targetAngle);
         }
 
