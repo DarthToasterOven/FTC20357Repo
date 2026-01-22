@@ -4,7 +4,6 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.controller.PIDController;
-import com.arcrobotics.ftclib.controller.wpilibcontroller.ArmFeedforward;
 import com.arcrobotics.ftclib.controller.wpilibcontroller.SimpleMotorFeedforward;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -15,37 +14,35 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 @Config
 @TeleOp
 
-public class TurretPidF extends LinearOpMode {
+public class LauncherPidF extends LinearOpMode {
     private PIDController controller;
 
 
     public static double p1 = 0, i1 = 0, d1 = 0;
-    public static double kS = 0,kCos = 0,kV = 0, kA;
-    public static int target1 = 0;
+    public static double kS = 0,kV = 0,kA = 0;
+    public static int target1;
 
-    public static int vel = 0, accel = 0;
-
-    private DcMotorEx turretMotor;
+    private DcMotorEx launcher;
     @Override
     public void runOpMode() throws InterruptedException {
         controller = new PIDController(p1,i1,d1);
-        ArmFeedforward feedforward = new ArmFeedforward(kS,kCos,kV,kA);
+        SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS,kV,kA);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        turretMotor = hardwareMap.get(DcMotorEx.class,"turret");
-        turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        launcher = hardwareMap.get(DcMotorEx.class,"launcher");
+        launcher.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         waitForStart();
         while (opModeIsActive()){
 
             controller.setPID(p1,i1,d1);
-            double turretPos = turretMotor.getCurrentPosition();
-            double pid2 = controller.calculate(turretPos, target1);
-            double ff = feedforward.calculate(target1, vel,accel);
+            double turretVel = launcher.getVelocity();
+            double pid2 = controller.calculate(turretVel, target1);
+            double ff = feedforward.calculate(target1);
 
-            turretMotor.setPower(pid2 + ff);
+            launcher.setPower(pid2 + ff);
 
-            telemetry.addData("turret pos",turretPos );
-            telemetry.addData("turret target",target1);
+            telemetry.addData("launcher vel", turretVel);
+            telemetry.addData("launcher target",target1);
             telemetry.update();
 
         }
