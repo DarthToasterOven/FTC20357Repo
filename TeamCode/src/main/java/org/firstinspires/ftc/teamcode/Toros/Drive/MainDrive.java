@@ -170,6 +170,12 @@ public class MainDrive extends LinearOpMode {
             } else if (gamepad2.bWasPressed()) {
                 lockedOn = false;
             }
+            // Rumble if aimed
+            if (detection.metadata != null && Math.abs(detection.ftcPose.bearing) < 2 && (detection.id == 20 || detection.id == 24)) {
+                gamepad2.rumble(500);
+
+            }
+
 //            if (detection.metadata != null && lockedOn && (detection.id == 24 || detection.id == 23)) {// Checks if there is a detection and that the lockon is active
 //                if(Math.abs(detection.ftcPose.bearing) < 100 ) {// make higher??
 //                    turret.setAngle((turret.getTurretAngle() - detection.ftcPose.bearing) * 0.75);
@@ -194,7 +200,7 @@ public class MainDrive extends LinearOpMode {
                 // Clamp
                 gain = Math.max(-5.0, Math.min(5.0, gain)); // max 5 degrees per loop
 
-                turret.setAngle(turret.getTurretAngle() + gain);
+                turret.setAngle(turret.getTurretAngle() - gain);
 
             }
         }

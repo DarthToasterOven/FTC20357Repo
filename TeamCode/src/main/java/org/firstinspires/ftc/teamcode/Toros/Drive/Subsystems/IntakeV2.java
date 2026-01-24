@@ -67,12 +67,22 @@ public class IntakeV2 {
             if (gamepad2.left_bumper)
             {
                 //targetVel = airsort;
-                targetVel = -1500;
-                hood.setPosition(0.85);
+                targetVel = -1700;
+                hood.setPosition(0.6);
             }
             else {
                 targetVel = calcLaunch2();
             }
+        if (gamepad1.b) {
+            intakeMotor.setPower(0);
+            trans.setPower(0);
+        }
+
+        if(gamepad1.dpadUpWasPressed()){
+            targetVel -=50;
+        } else if (gamepad1.dpadDownWasPressed()) {
+            targetVel +=50;
+        }
 
 
         //launch normal
@@ -131,15 +141,10 @@ public class IntakeV2 {
             trans.setPower(0);
         }
 
-        if(gamepad1.dpadUpWasPressed()){
-            targetVel -=50;
-        } else if (gamepad1.dpadDownWasPressed()) {
-            targetVel +=50;
-        }
     }
 
     public void transfer(){
-        if(gamepad1.right_bumper &&  c3.blue() < 150){
+        if(gamepad1.right_trigger > 0.25 &&  c3.blue() < 150){
             trans.setPower(0.25);
         }
         if(gamepad1.left_bumper){
@@ -168,7 +173,7 @@ public class IntakeV2 {
     public static double maxAngle = 50;
     public static double minServo = 0.0;
     public static double maxServo = 1.0;
-    public int calcLaunch2() { // to make air sort: add parameter?? if slow then: hood angle = 75, else: calc hood angle
+    public int calcLaunch2() { // to make air sort: add parameter?? if slow then: hood angle = high, else: calc hood angle
 
         //vars
         double distance = lastDistance;
@@ -220,10 +225,10 @@ public class IntakeV2 {
 
         //tuning
         if (distance > 3){
-            k = -2.6;
+            k = -2.67;
         }
         if (distance <= 3){
-            k = -2.4;
+            k = -2.1;
         }
         ticksPerSecond *= k;
 

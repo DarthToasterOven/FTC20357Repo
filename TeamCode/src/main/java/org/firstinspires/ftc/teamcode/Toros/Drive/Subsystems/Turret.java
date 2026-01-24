@@ -47,10 +47,7 @@ public class Turret {
 
     public void runTurret() {
 
-        //turretMotor.setPower(gamepad2.right_stick_x); //test
-//        if (gamepad2.dpadLeftWasPressed()){
-//            imu.resetYaw();
-//        }
+
 
         botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
@@ -88,7 +85,12 @@ public class Turret {
             targetAngle = botHeading - currentAngle;
         }
 
-
+        if (gamepad2.dpadLeftWasPressed()) {
+            setAngle(-45);
+        }
+        if (gamepad2.dpadLeftWasPressed()) {
+            setAngle(45);
+        }
 
     }
 
