@@ -37,6 +37,8 @@ public class MainDrive extends LinearOpMode {
     List<LynxModule> allHubs;
     private boolean lockedOn = false;
     private boolean mode = false;
+
+
     @Override
     public void runOpMode() throws InterruptedException {
         //Constructs the systems and makes them objects allowing to use a method to run the system and allows for other methods to be used
@@ -55,21 +57,18 @@ public class MainDrive extends LinearOpMode {
         waitForStart();
         // runs all of the systems
         while (opModeIsActive()){
-            if(mode) {
-                drivetrain.driveRobotCentric();
-            }
-            else{
-                drivetrain.driveFieldCentric();
-            }
-            if(gamepad1.bWasPressed()){
-                mode = !mode;
-            }
+
 
             initTelemetry();
             telemetryAprilTag();
             getMotif();
+            drivetrain.driveRobotCentric();
+
+
+
             turret.runTurret();
             lockOn();
+
             intake.runlauncher();
             intake.runIntake();
             intake.transfer();
@@ -171,10 +170,31 @@ public class MainDrive extends LinearOpMode {
             } else if (gamepad2.bWasPressed()) {
                 lockedOn = false;
             }
-            if (detection.metadata != null && lockedOn && (detection.id == 24 || detection.id == 23)) {// Checks if there is a detection and that the lockon is active
-                if(Math.abs(detection.ftcPose.bearing) < 100 ) {// make higher??
-                    turret.setAngle((turret.getTurretAngle() - detection.ftcPose.bearing) * 0.75);
-                }
+//            if (detection.metadata != null && lockedOn && (detection.id == 24 || detection.id == 23)) {// Checks if there is a detection and that the lockon is active
+//                if(Math.abs(detection.ftcPose.bearing) < 100 ) {// make higher??
+//                    turret.setAngle((turret.getTurretAngle() - detection.ftcPose.bearing) * 0.75);
+//                }
+
+//            if (detection.metadata != null && lockedOn && (detection.id == 24 || detection.id == 23)) {
+//                if (Math.abs(detection.ftcPose.bearing) <30) {
+//
+//                    turret.turretPow((detection.ftcPose.bearing + 30) * (-0.1 - 0.1) / (30 + 30) + 0.1);
+//                }
+//                else{
+//                    turret.turretPow(0);
+//                }
+
+            if (detection.metadata != null && lockedOn && (detection.id == 20 || detection.id == 24)) {
+
+                double bearing = detection.ftcPose.bearing; // angle to target in degrees
+                // deadzone
+                if (Math.abs(bearing) < 1.0) continue;
+
+                double gain = 0.0005 * Math.pow(bearing, 3) + 0.25 * bearing;
+                // Clamp
+                gain = Math.max(-5.0, Math.min(5.0, gain)); // max 5 degrees per loop
+
+                turret.setAngle(turret.getTurretAngle() + gain);
 
             }
         }

@@ -8,10 +8,12 @@ import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.arcrobotics.ftclib.controller.wpilibcontroller.SimpleMotorFeedforward;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -42,11 +44,13 @@ public class Auto2025RedNear extends LinearOpMode {
     private DcMotor intake;
     private PIDController controller;
 
-    public static double p1 = 0.009, i1 = 0.45, d1 = 0;
+    public static double p1 = 0.01, i1 = 0.6, d1 = 0;
+    public static double kS = 0.025,kV = 0.001,kA = -0.025;
+    public static double accel = 20;
 
     public static double p2 = 0.006012 , i2 = 0.00065, d2 = 0.0004314;
 
-    public static int targetVel = -1390;
+    public static int targetVel = -1280;
     public static int targetAngle = 0;
 
 
@@ -79,26 +83,19 @@ public class Auto2025RedNear extends LinearOpMode {
                 if(!init) {
                     timer.reset();
                     init = true;
-                    controller.setPID(p1, i1, d1);
-                    hood.setPosition(0.8);
+                    hood.setPosition(1);
                 }
-                double launchVel = launch.getVelocity();
-                double pid = controller.calculate(launchVel, targetVel);
-                //double ff = Math.cos(Math.toRadians(targetVel /ticks_in_degrees)) * f1;
-                double power = pid;
-                launch.setPower(power);
-                hood.setPosition(0.8);
-                if (launch.getVelocity() <= -1360) { //1585
+                if (launch.getVelocity() <= -1200) { //1585
 
                     trans.setPower(-1);
-                    intake.setPower(-0.7);
+                    intake.setPower(-1);
 
-                } else if (launch.getVelocity() >= -1360) {
+                } else if (launch.getVelocity() >= -1200) {
                     trans.setPower(0);
                     intake.setPower(0);
                 }
                 telemetryPacket.put("time",timer.seconds());
-                if(timer.seconds() < 4){
+                if(timer.seconds() < 2){
                     return true;
                 }
                 else{
@@ -111,6 +108,24 @@ public class Auto2025RedNear extends LinearOpMode {
         public Action fireBall() {
             return new launcherAction();
         }
+
+        public class revLaunch implements Action{
+            boolean init = false;
+            @Override
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                if(!init){
+                    controller.setPID(p1, i1, d1);
+                }
+                double launchVel = launch.getVelocity();
+                SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS,kV,kA);
+                double pid = controller.calculate(launchVel, targetVel);
+                double ff = feedforward.calculate(targetVel,accel);
+                double power = pid + ff;
+                launch.setPower(power);
+                return true;
+            }
+        }
+        public Action revMotor() {return  new revLaunch();}
     }
 
     IMU imu;
@@ -201,6 +216,52 @@ public class Auto2025RedNear extends LinearOpMode {
             }
         }
         public Action takeBall() { return new intakeAction(); }
+
+        public class runTrans implements Action{
+            boolean init = false;
+            ElapsedTime timer;
+            @Override
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                if(!init){
+                    timer = new ElapsedTime();
+                    trans.setPower(-0.1);
+                    init = true;
+                }
+                if(timer.seconds() < 1){
+                    return true;
+                }
+                else{
+                    trans.setPower(0);
+                    return false;
+
+                }
+            }
+        }
+        public Action transRun(){return new runTrans();}
+
+        public class runIntake implements Action {
+            private boolean init = false;
+            ElapsedTime timer;
+
+            @Override
+
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                if (!init) {
+                    intake.setPower(-1);
+                    init = true;
+                    timer = new ElapsedTime();
+                }
+
+                if(timer.seconds() < 1.5 ){
+                    return true;
+                }
+                else{
+                    intake.setPower(0);
+                    return false;
+                }
+            }
+        }
+        public Action intakeRun(){return new runIntake();}
     }
     public class colorSensors {
         public colorSensors(HardwareMap hardwareMap){
@@ -296,68 +357,88 @@ public class Auto2025RedNear extends LinearOpMode {
         waitForStart();
 
         Action tab1 = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(-13,13),Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(-13,13),Math.toRadians(90), new TranslationalVelConstraint(15.0))
 //                .stopAndAdd(scanMotif())
 //                .turn(Math.toRadians(70))
                         .build();
         Action tab2 = drive.actionBuilder(new Pose2d(-13,13,Math.toRadians(90)))//set var constraint later
 
-//              .waitSeconds(5)
+//
 
-                .strafeTo(new Vector2d(-13,58), new TranslationalVelConstraint(15.0))
+                .strafeTo(new Vector2d(-13,49), new TranslationalVelConstraint(50.0))
                 .build();
-        Action tab3 = drive.actionBuilder(new Pose2d(-14,53,Math.toRadians(90)))
+        Action tab3 = drive.actionBuilder(new Pose2d(-14,49,Math.toRadians(90)))
                 //.waitSeconds(1.5)
                 .strafeTo(new Vector2d(-13,13))
 
                 .build();
         Action tab4 = drive.actionBuilder(new Pose2d(-13,13,Math.toRadians(90)))
                 //.waitSeconds(5)
-                .strafeToLinearHeading(new Vector2d(13,28),Math.toRadians(90))
-                .strafeTo(new Vector2d(13,63), new TranslationalVelConstraint(15.0))
-//                .waitSeconds(2.5)
+                .strafeToLinearHeading(new Vector2d(14,28),Math.toRadians(90))
+                .strafeTo(new Vector2d(14,55), new TranslationalVelConstraint(50.0))
+//              .waitSeconds(2.5)
                 .build();
-        Action tab5 = drive.actionBuilder(new Pose2d(13,60,Math.toRadians(90)))
+        Action tab5 = drive.actionBuilder(new Pose2d(13,55,Math.toRadians(90)))
                 .strafeToLinearHeading(new Vector2d(-13,13), Math.toRadians(90))
                 .build();
         Action tab6 = drive.actionBuilder(new Pose2d(-13,13,Math.toRadians(90)))
                 //.waitSeconds(5)
-                .strafeToLinearHeading(new Vector2d(10,35),Math.toRadians(90))
-                .strafeToLinearHeading(new Vector2d(38,35),Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(36,30),Math.toRadians(90), new TranslationalVelConstraint(50.0))
 
-                .strafeTo(new Vector2d(38,53), new TranslationalVelConstraint(15.0))
+                .strafeTo(new Vector2d(36,50), new TranslationalVelConstraint(30.0))
                 .build();
         Action tab7 = drive.actionBuilder(new Pose2d(38,53,Math.toRadians(90)))
                 .strafeToLinearHeading(new Vector2d(-13,13),Math.toRadians(90))
                 .build();
+        Action tab8 = drive.actionBuilder(new Pose2d(-13,13,Math.toRadians(90)))
+                .strafeToLinearHeading(new Vector2d(20,20),Math.toRadians(0))
+                .build();
+
+
         if (opModeIsActive()) {
             Actions.runBlocking(
                     new ParallelAction(
-                            //turret.turretGo(),
+                            launcher.revMotor(),
                             new SequentialAction(
-                                    //turret.changeAngle(23), //45 is a placeholder, change to angle of where the motif is
-////                                    scanMotif(),
-//                                    turret.changeAngle(45),
-                                    tab1, // move to launch position
-                                    launcher.fireBall(),
-                                    new ParallelAction(
-                                            intake.takeBall(),
-                                            tab2
-                                    ),
-                                    tab3,
 
-                                    launcher.fireBall(),
-                                    new ParallelAction(
-                                            intake.takeBall(),
-                                            tab4
+                                    tab1, // move to launch position
+                                    launcher.fireBall(), // +3 (preloaded)
+                                    new ParallelAction(//1st spike,
+                                            tab2,
+                                            intake.intakeRun(),
+                                            intake.transRun()
+
+                                    ),
+
+                                    tab3, // move to launch
+                                    launcher.fireBall(), // +6
+                                    new ParallelAction( // 2nd spike
+                                            tab4,
+                                            new SequentialAction(
+                                                    new SleepAction(1),
+                                                    new ParallelAction(
+                                                        intake.intakeRun(),
+                                                        intake.transRun()
+                                                    )
+                                            )
+
                                     ),
                                     tab5,
-                                    launcher.fireBall(),
-                                    new ParallelAction(
-                                            intake.takeBall(),
-                                            tab6
+                                    launcher.fireBall(), // + 9
+                                    new ParallelAction( // 3rd spike
+                                            tab6,
+                                            new SequentialAction(
+                                                    new SleepAction(2),
+                                                    new ParallelAction(
+                                                            intake.intakeRun(),
+                                                            intake.transRun()
+
+                                                    )
+                                            )
                                     ),
-                                    tab7
+                                    tab7,
+                                    launcher.fireBall(),
+                                    tab8
                            )
                     )
             );

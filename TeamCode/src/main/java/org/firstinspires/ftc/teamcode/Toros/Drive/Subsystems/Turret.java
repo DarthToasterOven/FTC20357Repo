@@ -14,7 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.opencv.core.Mat;
 
 public class Turret {
-    public static double p1 = 0.006012 , i1 = 0.00065, d1 = 0.0004314;
+    public static double p1 = 0.0022 , i1 = 0.02, d1 = 0.00035;
     private final DcMotorEx turretMotor;
     private final PIDController controller;
     public double targetAngle = 0;
@@ -30,6 +30,8 @@ public class Turret {
         turretMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         gamepad2 = gamepad;
         controller = new PIDController(p1, i1, d1);
         controller.setPID(p1, i1, d1);
@@ -45,29 +47,36 @@ public class Turret {
 
     public void runTurret() {
 
+        //turretMotor.setPower(gamepad2.right_stick_x); //test
+//        if (gamepad2.dpadLeftWasPressed()){
+//            imu.resetYaw();
+//        }
 
-
-        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
         //Calculates the turret's angle and converts the targetAngle to the motor ticks
         double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 180 * gearRatio +botHeading/2;
 
-        targetPos = (384.5 * (targetAngle + (int)botHeading/2) / 180 * (5.0 / 2.0));
+        targetPos = (384.5 * (targetAngle + (int)botHeading/2.0) / 180 * (5.0 / 2.0));
         motorPosition = turretMotor.getCurrentPosition();
 
-        //Hard limit originally was supposed to be a wrap around
 
 
         power = controller.calculate(motorPosition, targetPos);
 
         turretMotor.setPower(power);
 
-        if(Math.abs(currentAngle) > 85 || Math.abs(targetAngle) > 85){
-            targetAngle = -targetAngle + Math.copySign(5, targetAngle);
+//        if(Math.abs(currentAngle) > 85 || Math.abs(targetAngle) > 85){
+//            targetAngle = -targetAngle + Math.copySign(10, targetAngle);
+//        }
+
+        if(Math.abs(targetAngle) > 80){
+            targetAngle = -targetAngle + Math.copySign(10, targetAngle);
         }
+//        targetAngle = Math.max(-90, Math.min(90, targetAngle));
 
         if(Math.abs(gamepad2.left_stick_x) > 0.1){
-            targetAngle += gamepad2.left_stick_x *2;
+            targetAngle += gamepad2.left_stick_x * 1.5;
 
         }
         if(gamepad2.aWasPressed()){
@@ -89,6 +98,11 @@ public class Turret {
 
     public double getTurretAngle() {
         return (turretMotor.getCurrentPosition() / 384.5) * 180 * gearRatio + botHeading/2;
+    }
+
+
+    public void turretPow(double calc){
+        turretMotor.setPower(calc);
     }
 }
 

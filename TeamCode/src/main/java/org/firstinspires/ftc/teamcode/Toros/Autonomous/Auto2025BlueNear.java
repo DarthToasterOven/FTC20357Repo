@@ -12,6 +12,7 @@ import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.arcrobotics.ftclib.controller.wpilibcontroller.SimpleMotorFeedforward;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -34,7 +35,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.ArrayList;
 import java.util.List;
 
-@Autonomous(name = "AutoBlueNear")
+@Autonomous(name = "Auto2025BlueNear")
 public class Auto2025BlueNear extends LinearOpMode {
     public DcMotorEx launch, turretMotor, trans;
     public Servo hood;
@@ -42,12 +43,15 @@ public class Auto2025BlueNear extends LinearOpMode {
     private DcMotor intake;
     private PIDController controller;
 
-    public static double p1 = 0.009, i1 = 0.45, d1 = 0;
+    public static double p1 = 0.01, i1 = 0.6, d1 = 0;
+    public static double kS = 0.025,kV = 0.001,kA = -0.025;
+    public static double accel = 20;
 
-    public static double p2 = 0.0025, i2 = 0.000001, d2 =0.0001;
+    public static double p2 = 0.006012 , i2 = 0.00065, d2 = 0.0004314;
 
-    public static int targetVel = -1480;
+    public static int targetVel = -1200;
     public static int targetAngle = 0;
+
 
     public class Launcher {
         public Launcher(HardwareMap hardwareMap) {
@@ -78,21 +82,14 @@ public class Auto2025BlueNear extends LinearOpMode {
                 if(!init) {
                     timer.reset();
                     init = true;
-                    controller.setPID(p1, i1, d1);
                     hood.setPosition(0.8);
                 }
-                double launchVel = launch.getVelocity();
-                double pid = controller.calculate(launchVel, targetVel);
-                //double ff = Math.cos(Math.toRadians(targetVel /ticks_in_degrees)) * f1;
-                double power = pid;
-                launch.setPower(power);
-                hood.setPosition(0.85);
-                if (launch.getVelocity() <= -1430) { //1585
+                if (launch.getVelocity() <= -1100) { //1585
 
                     trans.setPower(-1);
                     intake.setPower(-0.7);
 
-                } else if (launch.getVelocity() >= -1430) {
+                } else if (launch.getVelocity() >= -1100) {
                     trans.setPower(0);
                     intake.setPower(0);
                 }
@@ -110,6 +107,24 @@ public class Auto2025BlueNear extends LinearOpMode {
         public Action fireBall() {
             return new launcherAction();
         }
+
+        public class revLaunch implements Action{
+            boolean init = false;
+            @Override
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                if(!init){
+                    controller.setPID(p1, i1, d1);
+                }
+                double launchVel = launch.getVelocity();
+                SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS,kV,kA);
+                double pid = controller.calculate(launchVel, targetVel);
+                double ff = feedforward.calculate(targetVel,accel);
+                double power = pid + ff;
+                launch.setPower(power);
+                return true;
+            }
+        }
+        public Action revMotor() {return  new revLaunch();}
     }
 
     IMU imu;
@@ -119,7 +134,6 @@ public class Auto2025BlueNear extends LinearOpMode {
             turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             controller = new PIDController(p2, i2, d2);
-            controller.setPID(p2, i2, d2);
             imu = hardwareMap.get(IMU.class, "imu");
             IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                     RevHubOrientationOnRobot.LogoFacingDirection.UP,
@@ -127,27 +141,38 @@ public class Auto2025BlueNear extends LinearOpMode {
             ));
 
             imu.initialize(parameters);
-            imu.resetYaw();
 
         }
         public class turretAction implements Action{
-            double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
+            private boolean init = false;
             @Override
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-                double Currentangle = (turretMotor.getCurrentPosition()/384.5)*360*(2.0/5.0);
-                double ticks = (384.5 * targetAngle + botHeading) / 360.0 * (5.0 / 2.0);;
-                double motorPosition = turretMotor.getCurrentPosition();
-                double pid = controller.calculate(motorPosition, ticks);
-                double power = pid;
+                if(!init){
+                    controller.setPID(p2,i2,d2);
+                    init = true;
+                }
+                double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+
+                //Calculates the turret's angle and converts the targetAngle to the motor ticks
+                double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 180.0 * (2.0/5.0) + (botHeading/2);
+
+                double targetPos = (384.5 * targetAngle + (int)botHeading/2) / 180.0 * (5.0 / 2.0);
+                int motorPosition = turretMotor.getCurrentPosition();
+
+                //Hard limit originally was supposed to be a wrap around
+
+
+                double power = controller.calculate(motorPosition, targetPos);
                 turretMotor.setPower(power);
                 return true;
             }
         }
-        public Action turretAction(){return turretAction();}
+        public Action turretGo(){return new turretAction();}
         public Action changeAngle(int target){return new InstantAction(()-> targetAngle = target);
         }
     }
+
     public class sensors implements Action{
 
         @Override
@@ -179,7 +204,7 @@ public class Auto2025BlueNear extends LinearOpMode {
                     timer = new ElapsedTime();
                 }
 
-                if(timer.seconds() < 4.5 ){
+                if(timer.seconds() < 3 ){
                     return true;
                 }
                 else{
@@ -190,6 +215,52 @@ public class Auto2025BlueNear extends LinearOpMode {
             }
         }
         public Action takeBall() { return new intakeAction(); }
+
+        public class runTrans implements Action{
+            boolean init = false;
+            ElapsedTime timer;
+            @Override
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                if(!init){
+                    timer = new ElapsedTime();
+                    trans.setPower(-0.1);
+                    init = true;
+                }
+                if(timer.seconds() < 3){
+                    return true;
+                }
+                else{
+                    trans.setPower(0);
+                    return false;
+
+                }
+            }
+        }
+        public Action transRun(){return new runTrans();}
+
+        public class runIntake implements Action {
+            private boolean init = false;
+            ElapsedTime timer;
+
+            @Override
+
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                if (!init) {
+                    intake.setPower(-1);
+                    init = true;
+                    timer = new ElapsedTime();
+                }
+
+                if(timer.seconds() < 3 ){
+                    return true;
+                }
+                else{
+                    intake.setPower(0);
+                    return false;
+                }
+            }
+        }
+        public Action intakeRun(){return new runIntake();}
     }
     public class colorSensors {
         public colorSensors(HardwareMap hardwareMap){
@@ -262,58 +333,59 @@ public class Auto2025BlueNear extends LinearOpMode {
     /**
      * The variable to store our instance of the vision portal.
      */
+
     private VisionPortal visionPortal;
 
     ArrayList<String> stored = new ArrayList<>();
     ArrayList<String> motif = new ArrayList<>();
-
     @Override
     public void runOpMode() {
 
 
 //        initAprilTag();
-        Pose2d initialPose = new Pose2d(-48, -50, Math.toRadians(270)); //225
+        Pose2d initialPose = new Pose2d(-48, -50, Math.toRadians(270));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         Launcher launcher = new Launcher(hardwareMap);
-        Intake intake = new Intake(hardwareMap);
         Turret turret = new Turret(hardwareMap);
+        Intake intake = new Intake(hardwareMap);
         // Wait for the DS start button to be touched.
         telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
         telemetry.addData(">", "Touch START to start OpMode");
         telemetry.update();
+
         waitForStart();
 
         Action tab1 = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(-13,-13),Math.toRadians(270))
+                .strafeToLinearHeading(new Vector2d(-13,-13),Math.toRadians(270), new TranslationalVelConstraint(15.0))
 //                .stopAndAdd(scanMotif())
 //                .turn(Math.toRadians(70))
                 .build();
         Action tab2 = drive.actionBuilder(new Pose2d(-13,-13,Math.toRadians(270)))//set var constraint later
 
-
+//              .waitSeconds(5)
 
                 .strafeTo(new Vector2d(-13,-58), new TranslationalVelConstraint(15.0))
                 .build();
         Action tab3 = drive.actionBuilder(new Pose2d(-14,-53,Math.toRadians(270)))
-
+                //.waitSeconds(1.5)
                 .strafeTo(new Vector2d(-13,-13))
 
                 .build();
         Action tab4 = drive.actionBuilder(new Pose2d(-13,-13,Math.toRadians(270)))
-
+                //.waitSeconds(5)
                 .strafeToLinearHeading(new Vector2d(13,-28),Math.toRadians(270))
-                .strafeTo(new Vector2d(13,-60), new TranslationalVelConstraint(15.0))
-
+                .strafeTo(new Vector2d(13,63), new TranslationalVelConstraint(15.0))
+//                .waitSeconds(2.5)
                 .build();
         Action tab5 = drive.actionBuilder(new Pose2d(13,-60,Math.toRadians(270)))
                 .strafeToLinearHeading(new Vector2d(-13,-13), Math.toRadians(270))
                 .build();
         Action tab6 = drive.actionBuilder(new Pose2d(-13,-13,Math.toRadians(270)))
-
+                //.waitSeconds(5)
                 .strafeToLinearHeading(new Vector2d(10,-35),Math.toRadians(270))
                 .strafeToLinearHeading(new Vector2d(38,-35),Math.toRadians(270))
 
-                .strafeTo(new Vector2d(38,-53), new TranslationalVelConstraint(20.0))
+                .strafeTo(new Vector2d(38,-53), new TranslationalVelConstraint(15.0))
                 .build();
         Action tab7 = drive.actionBuilder(new Pose2d(38,-53,Math.toRadians(270)))
                 .strafeToLinearHeading(new Vector2d(-13,-13),Math.toRadians(270))
@@ -321,26 +393,25 @@ public class Auto2025BlueNear extends LinearOpMode {
         if (opModeIsActive()) {
             Actions.runBlocking(
                     new ParallelAction(
-                        //    turret.turretAction(),
+                            launcher.revMotor(),
                             new SequentialAction(
-                                    //turret.changeAngle(-135), //135 is a placeholder, change to angle of where the motif is
-                                    //scanMotif(),
-                                    //turret.changeAngle(0),
+
                                     tab1, // move to launch position
-                                    launcher.fireBall(),
-                                    new ParallelAction(
+                                    launcher.fireBall(), // +3 (preloaded)
+                                    new ParallelAction(//1st spike
                                             intake.takeBall(),
                                             tab2
                                     ),
-                                    tab3,
-                                    launcher.fireBall(),
-                                    new ParallelAction(
+
+                                    tab3, // move to launch
+                                    launcher.fireBall(), // +6
+                                    new ParallelAction( // 2nd spike
                                             intake.takeBall(),
                                             tab4
                                     ),
                                     tab5,
-                                    launcher.fireBall(),
-                                    new ParallelAction(
+                                    launcher.fireBall(), // + 9
+                                    new ParallelAction( // 3rd spike
                                             intake.takeBall(),
                                             tab6
                                     ),
@@ -348,12 +419,14 @@ public class Auto2025BlueNear extends LinearOpMode {
                             )
                     )
             );
-            while (opModeIsActive()) {
 
+            while (opModeIsActive()) {
+                telemetry.addData("motif",motif.get(1));
                 //telemetryAprilTag();
 
                 // Push telemetry to the Driver Station.
-
+                telemetry.addData("Launch Velocoty", launch.getVelocity());
+                telemetry.update();
 
                 // Save CPU resources; can resume streaming when needed.
 //                if (gamepad1.dpad_down) {
@@ -462,6 +535,29 @@ public class Auto2025BlueNear extends LinearOpMode {
                 telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
                 telemetry.addLine(String.format("Center %6.0f %6.0f (pixels)", detection.center.x, detection.center.y));
 
+            }
+            if (detection.id == 21){
+                motif.add("g");
+                motif.add("p");
+                motif.add("p");
+                //turn table swap to position of green
+                //swap to purple
+                //swap to purple
+            } else if (detection.id == 22) {
+                motif.add("p");
+                motif.add("g");
+                motif.add("p");
+                //swap to purple
+                //swap to green
+                //swap to purple
+            }
+            else if (detection.id == 23){
+                motif.add("p");
+                motif.add("p");
+                motif.add("g");
+                //swap to purple
+                //swap to purple
+                //swap to green
             }
         }   // end for() loop
 

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.arcrobotics.ftclib.controller.wpilibcontroller.SimpleMotorFeedforward;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -26,12 +27,14 @@ public class IntakeV2 {
     Gamepad gamepad1;
     private PIDController controller;
 
-    public static double p1 = 0.009, i1 = 0.45, d1 = 0;
+    public static double p1 = 0.01, i1 = 0.6, d1 = 0;
+    public static double kS = 0.025,kV = 0.001,kA = -0.025;
+    public static double accel = 20;
 
     public static double f1 = 0;
-    public static int targetVel = -1600;
+    public static int targetVel = -1800;
     private Gamepad gamepad2;
-    public int threshold = 50;
+    public int threshold = 80;
 
     public double ticksPerSecond = 1500;
 
@@ -61,14 +64,13 @@ public class IntakeV2 {
     public void runlauncher() {
         //targetVel = -1* calcLaunch(0);
         //double ff = Math.cos(Math.toRadians(targetVel /ticks_in_degrees)) * f1;
-
-            if (gamepad2.leftBumperWasPressed())
+            if (gamepad2.left_bumper)
             {
                 //targetVel = airsort;
-                targetVel = -1800;
-                hood.setPosition(0);
+                targetVel = -1500;
+                hood.setPosition(0.85);
             }
-            if (gamepad2.rightBumperWasPressed()) {
+            else {
                 targetVel = calcLaunch2();
             }
 
@@ -77,8 +79,10 @@ public class IntakeV2 {
             //Laucnhes the ball with PID
             if (gamepad2.left_trigger > 0.1) {
                 double launchVel = launch.getVelocity();
+                SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS,kV,kA);
                 double pid = controller.calculate(launchVel, targetVel);
-                double power = pid;
+                double ff = feedforward.calculate(targetVel,accel);
+                double power = pid + ff;
                 launch.setPower(power);
             }
             if (gamepad2.left_trigger < 0.1) {
@@ -116,7 +120,7 @@ public class IntakeV2 {
         if (gamepad1.left_trigger > 0.25) {
             intakeMotor.setPower(gamepad1.left_trigger);
         }
-        if (gamepad1.left_trigger < 0.25 && gamepad1.right_trigger < 0.25) {// turns off the motor if both triggers are not pressed
+        if (gamepad1.left_trigger < 0.25 && gamepad1.right_trigger < 0.25 && gamepad2.right_trigger <0.25) {// turns off the motor if both triggers are not pressed
             intakeMotor.setPower(0);
         }
 
@@ -127,11 +131,11 @@ public class IntakeV2 {
             trans.setPower(0);
         }
 
-//        if(gamepad1.dpadUpWasPressed()){
-//            targetVel -=50;
-//        } else if (gamepad1.dpadDownWasPressed()) {
-//            targetVel +=50;
-//        }
+        if(gamepad1.dpadUpWasPressed()){
+            targetVel -=50;
+        } else if (gamepad1.dpadDownWasPressed()) {
+            targetVel +=50;
+        }
     }
 
     public void transfer(){
@@ -155,9 +159,9 @@ public class IntakeV2 {
 
 
 
-    public static double k = -2.5;
+    public static double k = -2.6;
 
-    public double lastDistance = 1.2;
+    public double lastDistance = 1;
     public static double h = 0.69;
     public static double flywheelRadius = 0.048;
     public static double minAngle = 40;
@@ -215,9 +219,15 @@ public class IntakeV2 {
         ticksPerSecond = omega * 28 / (2 * Math.PI);
 
         //tuning
+        if (distance > 3){
+            k = -2.6;
+        }
+        if (distance <= 3){
+            k = -2.4;
+        }
         ticksPerSecond *= k;
-        targetVel = (int) ticksPerSecond;
 
+        targetVel = (int) ticksPerSecond;
 
         return (int) ticksPerSecond;
     }
