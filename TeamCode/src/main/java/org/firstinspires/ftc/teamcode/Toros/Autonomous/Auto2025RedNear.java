@@ -100,6 +100,8 @@ public class Auto2025RedNear extends LinearOpMode {
                 }
                 else{
                     launch.setPower(0);
+                    trans.setPower(0);
+                    intake.setPower(0);
                     return false;
                 }
             }
@@ -143,6 +145,8 @@ public class Auto2025RedNear extends LinearOpMode {
                 }
                 else{
                     launch.setPower(0);
+                    trans.setPower(0);
+                    intake.setPower(0);
                     return false;
                 }
             }
