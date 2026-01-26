@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems;
 
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.arcrobotics.ftclib.controller.wpilibcontroller.SimpleMotorFeedforward;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -14,7 +15,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.opencv.core.Mat;
 
 public class Turret {
-    public static double p1 = 0.0022 , i1 = 0.02, d1 = 0.00035;
+    public static double p1 = 0.009 , i1 = 0.00, d1 = 0.00065;
+    public static double kS = 0,kV = 0.00025, kA = 0;
+
     private final DcMotorEx turretMotor;
     private final PIDController controller;
     public double targetAngle = 0;
@@ -56,10 +59,16 @@ public class Turret {
 
         targetPos = (384.5 * (targetAngle + (int)botHeading/2.0) / 180 * (5.0 / 2.0));
         motorPosition = turretMotor.getCurrentPosition();
+        SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS,kV,kA);
+
+        controller.setPID(p1,i1,d1);
+        double turretPos = turretMotor.getCurrentPosition();
+        double pid2 = controller.calculate(turretPos, targetPos);
+        double ff = feedforward.calculate(targetPos);
 
 
 
-        power = controller.calculate(motorPosition, targetPos);
+        power = pid2 + ff;
 
         turretMotor.setPower(power);
 
@@ -73,7 +82,7 @@ public class Turret {
 //        targetAngle = Math.max(-90, Math.min(90, targetAngle));
 
         if(Math.abs(gamepad2.left_stick_x) > 0.1){
-            targetAngle += gamepad2.left_stick_x * 1.5;
+            targetAngle += gamepad2.left_stick_x *1.5;
 
         }
         if(gamepad2.aWasPressed()){

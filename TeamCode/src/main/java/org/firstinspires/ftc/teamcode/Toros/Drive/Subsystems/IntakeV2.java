@@ -27,9 +27,9 @@ public class IntakeV2 {
     Gamepad gamepad1;
     private PIDController controller;
 
-    public static double p1 = 0.01, i1 = 0.6, d1 = 0;
-    public static double kS = 0.025,kV = 0.001,kA = -0.025;
-    public static double accel = 20;
+    public static double p1 = 0.0045, i1 = 0, d1 = 0;
+    public static double kS = 0.001,kV = 0.00055,kA = 0;
+    public static double accel = -30;
 
     public static double f1 = 0;
     public static int targetVel = -1800;

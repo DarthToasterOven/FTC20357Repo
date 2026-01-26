@@ -27,6 +27,8 @@ public class MainDrive extends LinearOpMode {
     // In our drive class we broke it down into subsystems to make it easier to read
     // All that needs to be done in the code is construct the subsystems and run their systems with a method
     private static final boolean USE_WEBCAM = true;
+
+    private double Bearing1 = 0;
     public AprilTagProcessor aprilTag;
     public String[] motif = new String[3];
     public VisionPortal visionPortal;
@@ -154,7 +156,7 @@ public class MainDrive extends LinearOpMode {
         telemetry.addData("Angle", turret.getTurretAngle());
         telemetry.addData("heading", drivetrain.getHeading());
         telemetry.addData("targetVel", intake.getTargetVel());
-
+        telemetry.addData("Bearing",Bearing1);
 
 
         telemetry.update();
@@ -164,9 +166,10 @@ public class MainDrive extends LinearOpMode {
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
 
         for(AprilTagDetection detection: currentDetections) {
-
             if (gamepad2.yWasPressed()) {
                 lockedOn = true;
+                Bearing1 = detection.ftcPose.bearing;
+
             } else if (gamepad2.bWasPressed()) {
                 lockedOn = false;
             }
@@ -191,6 +194,7 @@ public class MainDrive extends LinearOpMode {
 //                }
 
             if (detection.metadata != null && lockedOn && (detection.id == 20 || detection.id == 24)) {
+
 
                 double bearing = detection.ftcPose.bearing; // angle to target in degrees
                 // deadzone

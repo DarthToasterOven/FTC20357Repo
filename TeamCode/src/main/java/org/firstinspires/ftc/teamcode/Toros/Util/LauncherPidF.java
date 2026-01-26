@@ -18,10 +18,10 @@ public class LauncherPidF extends LinearOpMode {
     private PIDController controller;
 
 
-    public static double p1 = 0, i1 = 0, d1 = 0;
-    public static double kS = 0,kV = 0.001,kA = 0;
+    public static double p1 = 0.0045, i1 = 0, d1 = 0;
+    public static double kS = 0.001,kV = 0.00055,kA = 0;
     public static int target1;
-    public static double accel = 0;
+    public static double accel = -30;
 
 
     private DcMotorEx launcher;

@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 
 @Config
@@ -20,7 +21,7 @@ public class TurretPidF extends LinearOpMode {
 
 
     public static double p1 = 0, i1 = 0, d1 = 0;
-    public static double kS = 0,kCos = 0,kV = 0, kA;
+    public static double kS = 0,kV = 0, kA = 0;
     public static int target1 = 0;
 
     public static int vel = 0, accel = 0;
@@ -29,18 +30,22 @@ public class TurretPidF extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         controller = new PIDController(p1,i1,d1);
-        ArmFeedforward feedforward = new ArmFeedforward(kS,kCos,kV,kA);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         turretMotor = hardwareMap.get(DcMotorEx.class,"turret");
+        turretMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         waitForStart();
         while (opModeIsActive()){
+            SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS,kV,kA);
 
             controller.setPID(p1,i1,d1);
             double turretPos = turretMotor.getCurrentPosition();
             double pid2 = controller.calculate(turretPos, target1);
-            double ff = feedforward.calculate(target1, vel,accel);
+            double ff = feedforward.calculate(target1);
 
             turretMotor.setPower(pid2 + ff);
 
