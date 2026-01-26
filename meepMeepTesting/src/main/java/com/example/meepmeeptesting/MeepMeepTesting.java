@@ -1,6 +1,7 @@
 package com.example.meepmeeptesting;
 
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.noahbres.meepmeep.MeepMeep;
 import com.noahbres.meepmeep.core.colorscheme.scheme.ColorSchemeBlueDark;
@@ -12,7 +13,7 @@ import com.noahbres.meepmeep.roadrunner.entity.RoadRunnerBotEntity;
 
 public class MeepMeepTesting {
     public static void main(String[] args) {
-        MeepMeep meepMeep = new MeepMeep(800);
+        MeepMeep meepMeep = new MeepMeep(500);
 
         // Declare our first bot
         RoadRunnerBotEntity myFirstBot = new DefaultBotBuilder(meepMeep)
@@ -36,20 +37,29 @@ public class MeepMeepTesting {
                 .setConstraints(60, 60, Math.PI, Math.PI, 14.25)
                 .build();
 
-        myFirstBot.runAction(myFirstBot.getDrive().actionBuilder(new Pose2d(-46, -48, Math.toRadians(270)))
-                .strafeToLinearHeading(new Vector2d(-12,-12),Math.toRadians(270))
-                .waitSeconds(2.5)
-                .strafeToLinearHeading(new Vector2d(-12,-28),Math.toRadians(270))
-                .strafeTo(new Vector2d(-12,-53))
-                .strafeToLinearHeading(new Vector2d(-12,-13), Math.toRadians(270))
-                .waitSeconds(2.5)
-                .strafeToLinearHeading(new Vector2d(12,-28),Math.toRadians(270))
-                .strafeTo(new Vector2d(12,-53))
-                .strafeToLinearHeading(new Vector2d(-13,-12), Math.toRadians(270))
-                .waitSeconds(2.5)
-                .strafeToLinearHeading(new Vector2d(36,-12),Math.toRadians(270))
-                .strafeTo(new Vector2d(36,-53))
-                .build());
+        myFirstBot.runAction(myFirstBot.getDrive().actionBuilder(new Pose2d(-48, 50, Math.toRadians(90)))
+                        .strafeToLinearHeading(new Vector2d(-28,28),Math.toRadians(90), new TranslationalVelConstraint(15.0))
+
+                        .strafeTo(new Vector2d(-13,28), new TranslationalVelConstraint(100.0))
+                        .strafeTo(new Vector2d(-13,49), new TranslationalVelConstraint(100.0))
+                        .strafeTo(new Vector2d(-2,42), new TranslationalVelConstraint(100.0))
+                        .strafeTo(new Vector2d(-2,53), new TranslationalVelConstraint(100.0))
+
+                        .strafeTo(new Vector2d(-13,13))
+
+                        .strafeToLinearHeading(new Vector2d(14,28),Math.toRadians(90))
+                        .strafeTo(new Vector2d(14,55), new TranslationalVelConstraint(100.0))
+
+                        .strafeToLinearHeading(new Vector2d(-13,13), Math.toRadians(90))
+
+                        .strafeToLinearHeading(new Vector2d(35,20),Math.toRadians(90), new TranslationalVelConstraint(100.0))
+                        .strafeTo(new Vector2d(35,50), new TranslationalVelConstraint(100.0))
+
+                        .strafeToLinearHeading(new Vector2d(-13,13),Math.toRadians(90))
+
+                        .strafeToLinearHeading(new Vector2d(0,30),Math.toRadians(0))
+                        .build()
+        );
         mySecondBot.runAction(mySecondBot.getDrive().actionBuilder(new Pose2d(-46, 48, Math.toRadians(90)))
                 .strafeToLinearHeading(new Vector2d(-13,13),Math.toRadians(90))
                 .waitSeconds(2.5)
@@ -98,9 +108,9 @@ public class MeepMeepTesting {
                 .setBackgroundAlpha(0.95f)
                 // Add both of our declared bot entities
                 .addEntity(myFirstBot)
-                .addEntity(mySecondBot)
+                //.addEntity(mySecondBot)
         //       .addEntity(myThirdBot)
-                .addEntity(myFourthBot)
+                //.addEntity(myFourthBot)
                 .start();
     }
 }

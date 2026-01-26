@@ -141,7 +141,13 @@ public class IntakeV2 {
             trans.setPower(0);
         }
 
-    }
+        if(c3.blue() < 150 && c2.blue() < 150 && c1.blue() < 150){
+            gamepad1.rumble(1500);
+        }
+
+
+
+        }
 
     public void transfer(){
         if(gamepad1.right_trigger > 0.25 &&  c3.blue() < 150){

@@ -97,7 +97,7 @@ public class Turret {
         if (gamepad2.dpadLeftWasPressed()) {
             setAngle(-45);
         }
-        if (gamepad2.dpadLeftWasPressed()) {
+        if (gamepad2.dpadRightWasPressed()) {
             setAngle(45);
         }
 

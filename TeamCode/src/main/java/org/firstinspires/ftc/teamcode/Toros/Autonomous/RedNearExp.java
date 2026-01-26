@@ -36,8 +36,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.ArrayList;
 import java.util.List;
 
-@Autonomous(name = "Auto2025RedNear")
-public class Auto2025RedNear extends LinearOpMode {
+@Autonomous(name = "RedNearExp")
+public class RedNearExp extends LinearOpMode {
     public DcMotorEx launch, turretMotor, trans;
     public Servo hood;
     public ColorSensor c1,c2,c3;
@@ -128,19 +128,19 @@ public class Auto2025RedNear extends LinearOpMode {
                 if(!init) {
                     timer.reset();
                     init = true;
-                    hood.setPosition(1);
+                    hood.setPosition(0.4);
                 }
-                if (launch.getVelocity() <= -1210) { //1585
+                if (launch.getVelocity() <= -900) { //
 
                     trans.setPower(-1);
                     intake.setPower(-1);
 
-                } else if (launch.getVelocity() >= -1210) {
+                } else if (launch.getVelocity() >= -900) {
                     trans.setPower(0);
                     intake.setPower(0);
                 }
                 telemetryPacket.put("time",timer.seconds());
-                if(timer.seconds() < 2.7){
+                if(timer.seconds() < 2){
                     return true;
                 }
                 else{
@@ -404,18 +404,17 @@ public class Auto2025RedNear extends LinearOpMode {
         waitForStart();
 
         Action tab1 = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(-13,13),Math.toRadians(90), new TranslationalVelConstraint(15.0))
+                .strafeToLinearHeading(new Vector2d(-28,28),Math.toRadians(90), new TranslationalVelConstraint(15.0))
 //                .stopAndAdd(scanMotif())
 //                .turn(Math.toRadians(70))
-                        .build();
-        Action tab2 = drive.actionBuilder(new Pose2d(-13,13,Math.toRadians(90)))//set var constraint later
+                .build();
+        Action tab2 = drive.actionBuilder(new Pose2d(-28,28,Math.toRadians(90)))//set var constraint later
 
 //
-
+                .strafeTo(new Vector2d(-13,28), new TranslationalVelConstraint(100.0))
                 .strafeTo(new Vector2d(-13,49), new TranslationalVelConstraint(100.0))
                 .strafeTo(new Vector2d(-2,42), new TranslationalVelConstraint(100.0))
                 .strafeTo(new Vector2d(-2,53), new TranslationalVelConstraint(100.0))
-
 
                 .build();
         Action tab3 = drive.actionBuilder(new Pose2d(-2,53,Math.toRadians(90)))
@@ -451,9 +450,10 @@ public class Auto2025RedNear extends LinearOpMode {
                     new ParallelAction(
                             launcher.revMotor(),
                             new SequentialAction(
-
+                                    new ParallelAction(
                                     tab1, // move to launch position
-                                    launcher.fireBallPre(), // +3 (preloaded)
+                                    launcher.fireBallPre() // +3 (preloaded)
+                                    ),
                                     new ParallelAction(//1st spike,
                                             tab2,
                                             intake.intakeRun(),
@@ -468,8 +468,8 @@ public class Auto2025RedNear extends LinearOpMode {
                                             new SequentialAction(
                                                     new SleepAction(1.1),
                                                     new ParallelAction(
-                                                        intake.intakeRun(),
-                                                        intake.transRun()
+                                                            intake.intakeRun(),
+                                                            intake.transRun()
                                                     )
                                             )
 
@@ -490,7 +490,7 @@ public class Auto2025RedNear extends LinearOpMode {
                                     tab7,
                                     launcher.fireBall(),
                                     tab8
-                           )
+                            )
                     )
             );
 

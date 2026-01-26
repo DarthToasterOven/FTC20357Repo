@@ -52,7 +52,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Config
-public final class MecanumDrive {
+public final class       MecanumDrive {
     public static class Params {
         // IMU orientation
         // TODO: fill in these values based on
@@ -72,9 +72,9 @@ public final class MecanumDrive {
         public double kA = 0.0007;
 
         // path profile parameters (in inches)
-        public double maxWheelVel = 50;
+        public double maxWheelVel = 100;
         public double minProfileAccel = -30;
-        public double maxProfileAccel = 50;
+        public double maxProfileAccel = 100;
 
         // turn profile parameters (in radians)
         public double maxAngVel =  Math.PI; // shared with path

@@ -200,7 +200,7 @@ public class MainDrive extends LinearOpMode {
                 // deadzone
                 if (Math.abs(bearing) < 1.0) continue;
 
-                double gain = 0.0005 * Math.pow(bearing, 3) + 0.25 * bearing;
+                double gain = 0.0000001 * Math.pow(bearing, 3) + 0.25 * bearing;
                 // Clamp
                 gain = Math.max(-5.0, Math.min(5.0, gain)); // max 5 degrees per loop
 
