@@ -67,9 +67,9 @@ public class MainDrive extends LinearOpMode {
             drivetrain.driveRobotCentric();
 
 
-
-            turret.runTurret();
             lockOn();
+            turret.runTurret();
+
 
             intake.runlauncher();
             intake.runIntake();
@@ -166,15 +166,16 @@ public class MainDrive extends LinearOpMode {
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
 
         for(AprilTagDetection detection: currentDetections) {
-            if (gamepad2.yWasPressed()) {
+            if (gamepad2.y) {
                 lockedOn = true;
                 Bearing1 = detection.ftcPose.bearing;
 
-            } else if (gamepad2.bWasPressed()) {
+                // } else if (gamepad2.bWasPressed()) {
                 lockedOn = false;
-            }
+                //  }
+            }else {lockedOn = false;}
             // Rumble if aimed
-            if (detection.metadata != null && Math.abs(detection.ftcPose.bearing) < 2 && (detection.id == 20 || detection.id == 24)) {
+            if (detection.metadata != null && Math.abs(detection.ftcPose.bearing) < 2 && (detection.id == 23 || detection.id == 24)) {
                 gamepad2.rumble(500);
 
             }
