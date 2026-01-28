@@ -15,8 +15,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.opencv.core.Mat;
 
 public class Turret {
-    public static double p1 = 0.009 , i1 = 0.00, d1 = 0.00065;
-    public static double kS = 0,kV = 0.00025, kA = 0;
+    public static double p1 = 0.00625 , i1 = 0.00, d1 = 0.00055;
+    public static double kS = 0,kV = 0.000125, kA = 0;
 
     private final DcMotorEx turretMotor;
     private final PIDController controller;
@@ -28,6 +28,7 @@ public class Turret {
     public double targetPos;
     IMU imu;
     public double botHeading;
+    public boolean gyro = true;
     public Turret(HardwareMap hardwareMap, Gamepad gamepad) {
         turretMotor = hardwareMap.get(DcMotorEx.class, "turret");
         turretMotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -40,8 +41,8 @@ public class Turret {
         controller.setPID(p1, i1, d1);
         imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.LEFT
+                RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
+                RevHubOrientationOnRobot.UsbFacingDirection.UP
         ));
 
         imu.initialize(parameters);
@@ -55,7 +56,7 @@ public class Turret {
         botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
         //Calculates the turret's angle and converts the targetAngle to the motor ticks
-        double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 180 * gearRatio +botHeading/2;
+        double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 180 * gearRatio +botHeading;
 
         targetPos = (384.5 * (targetAngle + (int)botHeading/2.0) / 180 * (5.0 / 2.0));
         motorPosition = turretMotor.getCurrentPosition();
@@ -67,11 +68,20 @@ public class Turret {
         double ff = feedforward.calculate(targetPos);
 
 
-
         power = pid2 + ff;
 
-        turretMotor.setPower(power);
+        if (gamepad2.dpadDownWasPressed()){
+            if (gyro == true){
+                gyro = false;
+            }
+            if (gyro == false){
+                gyro = true;
+            }
+        }
 
+        if (gyro == true) {
+            turretMotor.setPower(power);
+        }
 //        if(Math.abs(currentAngle) > 85 || Math.abs(targetAngle) > 85){
 //            targetAngle = -targetAngle + Math.copySign(10, targetAngle);
 //        }
@@ -94,12 +104,6 @@ public class Turret {
             targetAngle = botHeading - currentAngle;
         }
 
-        if (gamepad2.dpadLeftWasPressed()) {
-            setAngle(-45);
-        }
-        if (gamepad2.dpadRightWasPressed()) {
-            setAngle(45);
-        }
 
     }
 
@@ -108,7 +112,7 @@ public class Turret {
     }
 
     public double getTurretAngle() {
-        return (turretMotor.getCurrentPosition() / 384.5) * 180 * gearRatio + botHeading/2;
+        return (turretMotor.getCurrentPosition() / 384.5) * 180 * gearRatio + botHeading;
     }
 
 
