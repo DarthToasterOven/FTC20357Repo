@@ -74,7 +74,7 @@ public class MainDrive extends LinearOpMode {
             intake.runIntake();
             intake.transfer();
 
-            intake.hood.setPosition(gamepad2.right_stick_y);
+
 
         }
     }
@@ -126,7 +126,7 @@ public class MainDrive extends LinearOpMode {
         //builder.enableLiveView(true);
 
         // Set the stream format; MJPEG uses less bandwidth than default YUY2.
-        builder.setStreamFormat(VisionPortal.StreamFormat.MJPEG);
+        //builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
 
         // Choose whether or not LiveView stops if no processors are enabled.
         // If set "true", monitor shows solid orange screen if no processors enabled.
@@ -157,8 +157,6 @@ public class MainDrive extends LinearOpMode {
         telemetry.addData("Angle", turret.getTurretAngle());
         telemetry.addData("heading", drivetrain.getHeading());
         telemetry.addData("targetVel", intake.getTargetVel());
-        telemetry.addData("gyro", turret.gyro);
-
 
 
         telemetry.update();
@@ -206,13 +204,12 @@ public class MainDrive extends LinearOpMode {
                 // Clamp
                 gain = Math.max(-5.0, Math.min(5.0, gain)); // max 5 degrees per loop
 
-                if(bearing > 3){
-                    turret.setAngle(turret.getTurretAngle() - 5);
+                if(bearing > 0){
+                    turret.setAngle(turret.getTurretAngle() - 2.5);
                 }
-                if(bearing < 3){
-                    turret.setAngle(turret.getTurretAngle() + 5);
+                if(bearing < 0){
+                    turret.setAngle(turret.getTurretAngle() + 2.5);
                 }
-
 //                if(Math.abs(bearing) > 10) {
 //                    turret.setAngle(turret.getTurretAngle() - gain);
 //                }

@@ -19,7 +19,7 @@ import com.arcrobotics.ftclib.util.LUT;
 public class IntakeV2 {
     private DcMotorEx intakeMotor;
     public DcMotorEx launch;
-    public Servo hood;
+    private Servo hood;
     private DcMotorEx trans;
     public ColorSensor c1, c2, c3;
     private AprilTagProcessor aprilTag;
@@ -35,7 +35,7 @@ public class IntakeV2 {
     public static double f1 = 0;
     public static double targetVel = -1800;
     private Gamepad gamepad2;
-    public int threshold = 30;
+    public int threshold = 80;
 
     public double ticksPerSecond = 1500;
 
