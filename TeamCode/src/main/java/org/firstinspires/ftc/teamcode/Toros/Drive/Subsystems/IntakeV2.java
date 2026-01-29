@@ -35,7 +35,7 @@ public class IntakeV2 {
     public static double f1 = 0;
     public static double targetVel = -1800;
     private Gamepad gamepad2;
-    public int threshold = 80;
+    public int threshold = 30;
 
     public double ticksPerSecond = 1500;
 
@@ -174,9 +174,9 @@ public class IntakeV2 {
     LUT<Double, Double> speeds = new LUT<Double, Double>()
     {{
         add(0.0, 900.0);
-        add(0.5, 1000.0);
-        add(1.4, 1170.0);
-        add(3.1, 1560.0);
+        add(0.6, 1000.0);
+        add(1.4, 1200.0);
+        add(3.1, 1450.0);
     }};
 
     public double calcLaunch1() {
