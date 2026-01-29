@@ -204,11 +204,17 @@ public class MainDrive extends LinearOpMode {
                 // Clamp
                 gain = Math.max(-5.0, Math.min(5.0, gain)); // max 5 degrees per loop
 
-                if(bearing > 0){
-                    turret.setAngle(turret.getTurretAngle() - 2.5);
+                if(bearing > 10){
+                    turret.setAngle(turret.getTurretAngle() - 5);
                 }
-                if(bearing < 0){
-                    turret.setAngle(turret.getTurretAngle() + 2.5);
+                else if (bearing > 3){
+                    turret.setAngle(turret.getTurretAngle() - 2);
+                }
+                if(bearing < -10){
+                    turret.setAngle(turret.getTurretAngle() + 5);
+                }
+                else if(bearing < -3){
+                    turret.setAngle(turret.getTurretAngle() + 2);
                 }
 //                if(Math.abs(bearing) > 10) {
 //                    turret.setAngle(turret.getTurretAngle() - gain);
