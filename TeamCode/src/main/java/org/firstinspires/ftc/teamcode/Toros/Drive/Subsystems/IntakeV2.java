@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import com.arcrobotics.ftclib.util.LUT;
 
 @Config
 public class IntakeV2 {
@@ -32,9 +33,9 @@ public class IntakeV2 {
     public static double accel = -30;
 
     public static double f1 = 0;
-    public static int targetVel = -1800;
+    public static double targetVel = -1800;
     private Gamepad gamepad2;
-    public int threshold = 80;
+    public int threshold = 30;
 
     public double ticksPerSecond = 1500;
 
@@ -61,17 +62,17 @@ public class IntakeV2 {
 
     }
 
-    public void runlauncher() {
+    public void launcher() {
         //targetVel = -1* calcLaunch(0);
         //double ff = Math.cos(Math.toRadians(targetVel /ticks_in_degrees)) * f1;
             if (gamepad2.left_bumper)
             {
                 //targetVel = airsort;
-                targetVel = -1700;
-                hood.setPosition(0.6);
+                targetVel = -1480;
+                hood.setPosition(0);
             }
             else {
-                targetVel = calcLaunch2();
+                targetVel = calcLaunch1();
             }
         if (gamepad1.b) {
             intakeMotor.setPower(0);
@@ -123,7 +124,7 @@ public class IntakeV2 {
     public void runIntake() {
         //Moves ball into robot
         if (gamepad1.right_trigger > 0.25) {
-            intakeMotor.setPower(-gamepad1.right_trigger);
+            intakeMotor.setPower(-gamepad1.right_trigger * 0.67);
         }
 
         //Moves ball out of robot
@@ -141,7 +142,7 @@ public class IntakeV2 {
             trans.setPower(0);
         }
 
-        if(c3.blue() < 150 && c2.blue() < 150 && c1.blue() < 150){
+        if(c3.blue() > 150 && c2.blue() > 150 && c1.blue() > 150){
             gamepad1.rumble(1500);
         }
 
@@ -170,6 +171,54 @@ public class IntakeV2 {
 
 
 
+    LUT<Double, Double> speeds = new LUT<Double, Double>()
+    {{
+        add(0.0, 900.0);
+        add(0.6, 1000.0);
+        add(1.4, 1200.0);
+        add(3.1, 1450.0);
+    }};
+
+    public double calcLaunch1() {
+        double distance = lastDistance;
+        boolean tagSeen = false;
+        double hoodAngleDeg;
+
+        // Get distance
+        for (AprilTagDetection d : aprilTag.getDetections()) {
+            if (d.metadata != null && (d.id == 24 || d.id == 23)) {
+                distance = d.ftcPose.range * 0.0254;
+                tagSeen = true;
+                break;
+            }
+
+        }
+
+        if (tagSeen){
+            lastDistance = distance;
+        }
+
+        // Define distance
+        distance = Math.max(0.1, Math.min(4, distance));
+
+        //get hood angle (degrees)
+
+        hoodAngleDeg = 60 + (distance - 0.6) * (40 - 60) / (1 - 0.5);
+
+
+        // Define hood angle
+        hoodAngleDeg = Math.max(40, Math.min(60, hoodAngleDeg));
+        double hoodValue = minServo + ((60-hoodAngleDeg) / 20) * (maxServo - minServo);
+        hood.setPosition(hoodValue);
+
+
+        targetVel = -(speeds.getClosest(distance));
+
+        return targetVel;
+    }
+
+
+
     public static double k = -2.6;
 
     public double lastDistance = 1;
@@ -179,7 +228,7 @@ public class IntakeV2 {
     public static double maxAngle = 50;
     public static double minServo = 0.0;
     public static double maxServo = 1.0;
-    public int calcLaunch2() { // to make air sort: add parameter?? if slow then: hood angle = high, else: calc hood angle
+    public double calcLaunch2() { // to make air sort: add parameter?? if slow then: hood angle = high, else: calc hood angle
 
         //vars
         double distance = lastDistance;
@@ -230,12 +279,21 @@ public class IntakeV2 {
         ticksPerSecond = omega * 28 / (2 * Math.PI);
 
         //tuning
-        if (distance > 3){
-            k = -2.67;
+
+        if (distance <= 1) {
+            k = -2.7;
         }
-        if (distance <= 3){
+        if (distance > 1){
+            k = -2.7;
+        }
+        if (distance > 1.2){
             k = -2.1;
         }
+        if (distance > 2.6){
+            k = -2.65;
+        }
+
+
         ticksPerSecond *= k;
 
         targetVel = (int) ticksPerSecond;

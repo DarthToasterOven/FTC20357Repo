@@ -404,7 +404,7 @@ public class Auto2025RedNear extends LinearOpMode {
         waitForStart();
 
         Action tab1 = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(-13,13),Math.toRadians(90), new TranslationalVelConstraint(15.0))
+                .strafeTo(new Vector2d(-13,13), new TranslationalVelConstraint(15.0))
 //                .stopAndAdd(scanMotif())
 //                .turn(Math.toRadians(70))
                         .build();
@@ -425,24 +425,24 @@ public class Auto2025RedNear extends LinearOpMode {
                 .build();
         Action tab4 = drive.actionBuilder(new Pose2d(-13,13,Math.toRadians(90)))
                 //.waitSeconds(5)
-                .strafeToLinearHeading(new Vector2d(14,28),Math.toRadians(90))
+                .strafeTo(new Vector2d(14,28))
                 .strafeTo(new Vector2d(14,55), new TranslationalVelConstraint(100.0))
 //              .waitSeconds(2.5)
                 .build();
         Action tab5 = drive.actionBuilder(new Pose2d(14,55,Math.toRadians(90)))
-                .strafeToLinearHeading(new Vector2d(-13,13), Math.toRadians(90))
+                .strafeTo(new Vector2d(-13,13))
                 .build();
         Action tab6 = drive.actionBuilder(new Pose2d(-13,13,Math.toRadians(90)))
                 //.waitSeconds(5)
-                .strafeToLinearHeading(new Vector2d(35,20),Math.toRadians(90), new TranslationalVelConstraint(100.0))
+                .strafeTo(new Vector2d(35,20), new TranslationalVelConstraint(100.0))
 
                 .strafeTo(new Vector2d(35,50), new TranslationalVelConstraint(100.0))
                 .build();
         Action tab7 = drive.actionBuilder(new Pose2d(35,50,Math.toRadians(90)))
-                .strafeToLinearHeading(new Vector2d(-13,13),Math.toRadians(90))
+                .strafeTo(new Vector2d(-13,13))
                 .build();
         Action tab8 = drive.actionBuilder(new Pose2d(-13,13,Math.toRadians(90)))
-                .strafeToLinearHeading(new Vector2d(0,30),Math.toRadians(0))
+                .strafeTo(new Vector2d(0,30))
                 .build();
 
 

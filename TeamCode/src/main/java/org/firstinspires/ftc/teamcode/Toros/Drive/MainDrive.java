@@ -28,7 +28,6 @@ public class MainDrive extends LinearOpMode {
     // All that needs to be done in the code is construct the subsystems and run their systems with a method
     private static final boolean USE_WEBCAM = true;
 
-    private double Bearing1 = 0;
     public AprilTagProcessor aprilTag;
     public String[] motif = new String[3];
     public VisionPortal visionPortal;
@@ -39,6 +38,7 @@ public class MainDrive extends LinearOpMode {
     List<LynxModule> allHubs;
     private boolean lockedOn = false;
     private boolean mode = false;
+    private double bearing;
 
 
     @Override
@@ -68,12 +68,20 @@ public class MainDrive extends LinearOpMode {
 
 
             lockOn();
-            turret.runTurret();
+            //turret.runTurretGyro();
+            if (gamepad2.dpadUpWasPressed()){
+                turret.runTurretGyro();
+            }
+            if (gamepad2.dpadDownWasPressed()){
+                turret.runTurretBackup();
+            }
 
 
-            intake.runlauncher();
+            intake.launcher();
             intake.runIntake();
             intake.transfer();
+
+
 
         }
     }
@@ -125,7 +133,7 @@ public class MainDrive extends LinearOpMode {
         //builder.enableLiveView(true);
 
         // Set the stream format; MJPEG uses less bandwidth than default YUY2.
-        //builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
+        builder.setStreamFormat(VisionPortal.StreamFormat.MJPEG);
 
         // Choose whether or not LiveView stops if no processors are enabled.
         // If set "true", monitor shows solid orange screen if no processors enabled.
@@ -156,8 +164,7 @@ public class MainDrive extends LinearOpMode {
         telemetry.addData("Angle", turret.getTurretAngle());
         telemetry.addData("heading", drivetrain.getHeading());
         telemetry.addData("targetVel", intake.getTargetVel());
-        telemetry.addData("Bearing",Bearing1);
-
+        telemetry.addData("Bearing", bearing);
 
         telemetry.update();
     }
@@ -166,14 +173,13 @@ public class MainDrive extends LinearOpMode {
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
 
         for(AprilTagDetection detection: currentDetections) {
-            if (gamepad2.y) {
+            if (gamepad2.yWasPressed()) {
                 lockedOn = true;
-                Bearing1 = detection.ftcPose.bearing;
 
-                // } else if (gamepad2.bWasPressed()) {
+            } else if (gamepad2.bWasPressed()) {
                 lockedOn = false;
-                //  }
-            }else {lockedOn = false;}
+            }
+           // }else {lockedOn = true;}
             // Rumble if aimed
             if (detection.metadata != null && Math.abs(detection.ftcPose.bearing) < 2 && (detection.id == 23 || detection.id == 24)) {
                 gamepad2.rumble(500);
@@ -197,16 +203,32 @@ public class MainDrive extends LinearOpMode {
             if (detection.metadata != null && lockedOn && (detection.id == 20 || detection.id == 24)) {
 
 
-                double bearing = detection.ftcPose.bearing; // angle to target in degrees
+                bearing = detection.ftcPose.bearing; // angle to target in degrees
                 // deadzone
-                if (Math.abs(bearing) < 1.0) continue;
+                if (Math.abs(bearing) < 0.75) continue;
 
-                double gain = 0.0000001 * Math.pow(bearing, 3) + 0.25 * bearing;
+                double gain = 0.0008 * Math.pow(bearing, 3) + 0.25 * bearing;
                 // Clamp
                 gain = Math.max(-5.0, Math.min(5.0, gain)); // max 5 degrees per loop
 
-                turret.setAngle(turret.getTurretAngle() - gain);
-
+                if(bearing > 10){
+                    turret.setAngle(turret.getTurretAngle() - 5);
+                }
+                else if (bearing > 3){
+                    turret.setAngle(turret.getTurretAngle() - 2);
+                }
+                if(bearing < -10){
+                    turret.setAngle(turret.getTurretAngle() + 5);
+                }
+                else if(bearing < -3){
+                    turret.setAngle(turret.getTurretAngle() + 2);
+                }
+//                if(Math.abs(bearing) > 10) {
+//                    turret.setAngle(turret.getTurretAngle() - gain);
+//                }
+//                else {
+//                    turret.setAngle(turret.getTurretAngle());
+//                }
             }
         }
     }

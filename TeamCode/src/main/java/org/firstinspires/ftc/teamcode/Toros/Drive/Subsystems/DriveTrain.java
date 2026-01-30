@@ -46,8 +46,8 @@ public class DriveTrain {
         imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
-                RevHubOrientationOnRobot.UsbFacingDirection.UP
-        ));
+                RevHubOrientationOnRobot.UsbFacingDirection.UP));
+
 
 
 
@@ -81,15 +81,15 @@ public class DriveTrain {
         //XYtoggle is for movement on the X and Y axis
         //Rtoggle is for rotational movement
         if(XYtoggle){
-            x *= 0.5;
-            y *= 0.5;
+            x *= 0.25;
+            y *= 0.25;
         }
         else{
             x*=1;
             y*=1;
         }
         if(Rtoggle){
-            turn *= 0.5;
+            turn *= 0.25;
         }
         else{
             turn*=1;
@@ -132,15 +132,39 @@ public class DriveTrain {
 
     public void driveRobotCentric(){
 
+        if(gamepad1.rightBumperWasPressed()){
+            imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(
+                    RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
+                    RevHubOrientationOnRobot.UsbFacingDirection.UP)));
+            imu.resetYaw();
+        }
+
         double x = gamepad1.left_stick_x; // the *1.1 counteracts imperfect strafing
         double y = -gamepad1.left_stick_y;
         double turn = gamepad1.right_stick_x;
+
+        if(XYtoggle){
+            x *= 0.25;
+            y *= 0.25;
+        }
+        else{
+            x*=1;
+            y*=1;
+        }
+        if(Rtoggle){
+            turn *= 0.25;
+        }
+        else{
+            turn*=1;
+        }
 
         double theta = Math.atan2(y, x);
         double power = Math.hypot(x, y);
         double sin = Math.sin(theta - Math.PI / 4);
         double cos = Math.cos(theta - Math.PI / 4);
         double max = Math.max(Math.abs(sin), Math.abs(cos));
+        botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+
 
         /**
          In basics this is taking the x and y of the left stick making them into an angle
@@ -175,13 +199,12 @@ public class DriveTrain {
             br /= power + Math.abs(turn);
         }
 
-
-
         //Motor Drive
         FrontLeftMotor.setPower(fl);
         FrontRightMotor.setPower(fr);
         BackLeftMotor.setPower(bl);
         BackRightMotor.setPower(br);
+
     }
 
 
