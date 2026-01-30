@@ -38,6 +38,7 @@ public class MainDrive extends LinearOpMode {
     List<LynxModule> allHubs;
     private boolean lockedOn = false;
     private boolean mode = false;
+    private double bearing;
 
 
     @Override
@@ -67,10 +68,16 @@ public class MainDrive extends LinearOpMode {
 
 
             lockOn();
-            turret.runTurret();
+            //turret.runTurretGyro();
+            if (gamepad2.dpadUpWasPressed()){
+                turret.runTurretGyro();
+            }
+            if (gamepad2.dpadDownWasPressed()){
+                turret.runTurretBackup();
+            }
 
 
-            intake.runlauncher();
+            intake.launcher();
             intake.runIntake();
             intake.transfer();
 
@@ -126,7 +133,7 @@ public class MainDrive extends LinearOpMode {
         //builder.enableLiveView(true);
 
         // Set the stream format; MJPEG uses less bandwidth than default YUY2.
-        //builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
+        builder.setStreamFormat(VisionPortal.StreamFormat.MJPEG);
 
         // Choose whether or not LiveView stops if no processors are enabled.
         // If set "true", monitor shows solid orange screen if no processors enabled.
@@ -157,7 +164,7 @@ public class MainDrive extends LinearOpMode {
         telemetry.addData("Angle", turret.getTurretAngle());
         telemetry.addData("heading", drivetrain.getHeading());
         telemetry.addData("targetVel", intake.getTargetVel());
-
+        telemetry.addData("Bearing", bearing);
 
         telemetry.update();
     }
@@ -193,10 +200,10 @@ public class MainDrive extends LinearOpMode {
 //                    turret.turretPow(0);
 //                }
 
-            if (detection.metadata != null && lockedOn && (detection.id == 23 || detection.id == 24)) {
+            if (detection.metadata != null && lockedOn && (detection.id == 20 || detection.id == 24)) {
 
 
-                double bearing = detection.ftcPose.bearing; // angle to target in degrees
+                bearing = detection.ftcPose.bearing; // angle to target in degrees
                 // deadzone
                 if (Math.abs(bearing) < 0.75) continue;
 

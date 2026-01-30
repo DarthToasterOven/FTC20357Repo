@@ -62,14 +62,14 @@ public class IntakeV2 {
 
     }
 
-    public void runlauncher() {
+    public void launcher() {
         //targetVel = -1* calcLaunch(0);
         //double ff = Math.cos(Math.toRadians(targetVel /ticks_in_degrees)) * f1;
             if (gamepad2.left_bumper)
             {
                 //targetVel = airsort;
                 targetVel = -1480;
-                hood.setPosition(0.8);
+                hood.setPosition(0);
             }
             else {
                 targetVel = calcLaunch1();
@@ -124,7 +124,7 @@ public class IntakeV2 {
     public void runIntake() {
         //Moves ball into robot
         if (gamepad1.right_trigger > 0.25) {
-            intakeMotor.setPower(-gamepad1.right_trigger);
+            intakeMotor.setPower(-gamepad1.right_trigger * 0.67);
         }
 
         //Moves ball out of robot
@@ -182,7 +182,7 @@ public class IntakeV2 {
     public double calcLaunch1() {
         double distance = lastDistance;
         boolean tagSeen = false;
-        double hoodAngleDeg = 60;
+        double hoodAngleDeg;
 
         // Get distance
         for (AprilTagDetection d : aprilTag.getDetections()) {
