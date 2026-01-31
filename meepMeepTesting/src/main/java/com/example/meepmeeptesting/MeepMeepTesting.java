@@ -36,6 +36,7 @@ public class MeepMeepTesting {
                 .setConstraints(60, 60, Math.PI, Math.PI, 14.25)
                 .build();
 
+<<<<<<< HEAD
         myFirstBot.runAction(myFirstBot.getDrive().actionBuilder(new Pose2d(-46, -48, Math.toRadians(270)))
                 .strafeToLinearHeading(new Vector2d(-12,-12),Math.toRadians(270))
                 .waitSeconds(2.5)
@@ -63,20 +64,83 @@ public class MeepMeepTesting {
                 .waitSeconds(2.5)
                 .strafeToLinearHeading(new Vector2d(36,13),Math.toRadians(90))
                 .strafeTo(new Vector2d(36,53))
+=======
+        myFirstBot.runAction(myFirstBot.getDrive().actionBuilder(new Pose2d(-48, 50, Math.toRadians(90)))
+                        .strafeToLinearHeading(new Vector2d(-28,28),Math.toRadians(90), new TranslationalVelConstraint(15.0))
+                        .waitSeconds(2.7)
+
+                        .strafeTo(new Vector2d(-13,28), new TranslationalVelConstraint(100.0))
+                        .strafeTo(new Vector2d(-13,49), new TranslationalVelConstraint(100.0))
+                        .strafeTo(new Vector2d(-2,42), new TranslationalVelConstraint(100.0))
+                        .strafeTo(new Vector2d(-2,53), new TranslationalVelConstraint(100.0))
+
+
+                        .strafeTo(new Vector2d(-13,13))
+                        .waitSeconds(1)
+                        .strafeToLinearHeading(new Vector2d(14,28),Math.toRadians(90))
+                        .strafeTo(new Vector2d(14,55), new TranslationalVelConstraint(100.0))
+
+                        .strafeToLinearHeading(new Vector2d(-13,13), Math.toRadians(90))
+                        .waitSeconds(1)
+
+
+                        .strafeToLinearHeading(new Vector2d(35,20),Math.toRadians(90), new TranslationalVelConstraint(100.0))
+                        .strafeTo(new Vector2d(35,50), new TranslationalVelConstraint(100.0))
+
+                        .strafeToLinearHeading(new Vector2d(-13,13),Math.toRadians(90))
+                        .waitSeconds(1)
+
+                        .strafeToLinearHeading(new Vector2d(0,30),Math.toRadians(0))
+                        .build()
+        );
+        mySecondBot.runAction(mySecondBot.getDrive().actionBuilder(new Pose2d(-48, 50, Math.toRadians(90)))
+                .strafeToLinearHeading(new Vector2d(-28,28),Math.toRadians(90), new TranslationalVelConstraint(7.0))
+
+                .splineToConstantHeading(new Vector2d(13, 55), Math.toRadians(90))
+                .setTangent(0)
+                .splineToConstantHeading(new Vector2d(-2, 53), Math.toRadians(90))
+
+                .strafeTo(new Vector2d(-5,15))
+                .waitSeconds(1)
+                .setTangent(0)
+                .splineToConstantHeading(new Vector2d(13, 55), Math.toRadians(90))
+
+                .strafeTo(new Vector2d(-5,15))
+                .waitSeconds(1)
+                .setTangent(0)
+                .splineToConstantHeading(new Vector2d(37, 50), Math.toRadians(90))
+
+                .strafeTo(new Vector2d(-5,15))
+                .waitSeconds(1)
+
+
+                .strafeToLinearHeading(new Vector2d(0,45),Math.toRadians(0))
+
+>>>>>>> origin/master
                 .build());
-        myThirdBot.runAction(myThirdBot.getDrive().actionBuilder(new Pose2d(61.25,-12,Math.toRadians(270)))
-                .strafeToLinearHeading(new Vector2d(-12,-12),Math.toRadians(270))
-                .waitSeconds(2.5)
-                .strafeToLinearHeading(new Vector2d(-12,-28),Math.toRadians(270))
-                .strafeTo(new Vector2d(-12,-53))
-                .strafeToLinearHeading(new Vector2d(-12,-12), Math.toRadians(270))
-                .waitSeconds(2.5)
-                .strafeToLinearHeading(new Vector2d(12,-28),Math.toRadians(270))
-                .strafeTo(new Vector2d(12.25,-53))
-                .strafeToLinearHeading(new Vector2d(-12,-12), Math.toRadians(270))
-                .waitSeconds(2.5)
-                .strafeToLinearHeading(new Vector2d(35.25,-12),Math.toRadians(270))
-                .strafeTo(new Vector2d(35.25,-53))
+                myThirdBot.runAction(myThirdBot.getDrive().actionBuilder(new Pose2d(-48,-50,Math.toRadians(270)))
+                        .strafeToLinearHeading(new Vector2d(-28,28),Math.toRadians(90), new TranslationalVelConstraint(7.0))
+
+                        .splineToConstantHeading(new Vector2d(-14, 49), Math.toRadians(90))
+                        .setTangent(0)
+                        .splineToConstantHeading(new Vector2d(-2, 53), Math.toRadians(90))
+
+                        .strafeTo(new Vector2d(-5,15))
+                        .waitSeconds(1)
+                        .setTangent(0)
+                        .splineToConstantHeading(new Vector2d(13, 55), Math.toRadians(90))
+
+                        .strafeTo(new Vector2d(-5,15))
+                        .waitSeconds(1)
+                        .setTangent(0)
+                        .splineToConstantHeading(new Vector2d(37, 50), Math.toRadians(90))
+
+                        .strafeTo(new Vector2d(-5,15))
+                        .waitSeconds(1)
+
+
+                        .strafeToLinearHeading(new Vector2d(0,45),Math.toRadians(0))
+
                         .build());
         myFourthBot.runAction(myFourthBot.getDrive().actionBuilder(new Pose2d(61.25,12,Math.toRadians(90)))
                 .strafeToLinearHeading(new Vector2d(-11,12),Math.toRadians(90))
