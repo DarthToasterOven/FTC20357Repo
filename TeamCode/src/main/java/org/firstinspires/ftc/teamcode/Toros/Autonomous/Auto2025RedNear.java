@@ -20,6 +20,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -44,8 +45,8 @@ public class Auto2025RedNear extends LinearOpMode {
     private DcMotor intake;
     private PIDController controller;
 
-    public static double p1 = 0.01, i1 = 0.6, d1 = 0;
-    public static double kS = 0.025,kV = 0.001,kA = -0.025;
+    public static double p1 = 0.0045, i1 = 0, d1 = 0;
+    public static double kS1 = 0.001,kV = 0.00055,kA = -0;
     public static double accel = 20;
 
     public static double p2 = 0.006012 , i2 = 0.00065, d2 = 0.0004314;
@@ -164,7 +165,7 @@ public class Auto2025RedNear extends LinearOpMode {
                     controller.setPID(p1, i1, d1);
                 }
                 double launchVel = launch.getVelocity();
-                SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS,kV,kA);
+                SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS1,kV,kA);
                 double pid = controller.calculate(launchVel, targetVel);
                 double ff = feedforward.calculate(targetVel,accel);
                 double power = pid + ff;
@@ -179,13 +180,15 @@ public class Auto2025RedNear extends LinearOpMode {
     public class Turret{
         public Turret(HardwareMap hardwareMap){
             turretMotor = hardwareMap.get(DcMotorEx.class,"turret");
+            turretMotor.setDirection(DcMotorSimple.Direction.REVERSE);
             turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             controller = new PIDController(p2, i2, d2);
             imu = hardwareMap.get(IMU.class, "imu");
             IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                    RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                    RevHubOrientationOnRobot.UsbFacingDirection.LEFT
+                    RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
+                    RevHubOrientationOnRobot.UsbFacingDirection.UP
             ));
 
             imu.initialize(parameters);
@@ -203,9 +206,9 @@ public class Auto2025RedNear extends LinearOpMode {
                 double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
                 //Calculates the turret's angle and converts the targetAngle to the motor ticks
-                double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 180.0 * (2.0/5.0) + (botHeading/2);
+                double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360 * (2.0/5.0) + (botHeading);
 
-                double targetPos = (384.5 * targetAngle + (int)botHeading/2) / 180.0 * (5.0 / 2.0);
+                double targetPos = (384.5 * (targetAngle + (int)botHeading) / 360 * (5.0 / 2.0));
                 int motorPosition = turretMotor.getCurrentPosition();
 
                 //Hard limit originally was supposed to be a wrap around
@@ -414,7 +417,7 @@ public class Auto2025RedNear extends LinearOpMode {
 
                 .strafeTo(new Vector2d(-13,49), new TranslationalVelConstraint(100.0))
                 .strafeTo(new Vector2d(-2,42), new TranslationalVelConstraint(100.0))
-                .strafeTo(new Vector2d(-2,53), new TranslationalVelConstraint(100.0))
+                .strafeTo(new Vector2d(-2,55), new TranslationalVelConstraint(100.0))
 
 
                 .build();
@@ -434,9 +437,9 @@ public class Auto2025RedNear extends LinearOpMode {
                 .build();
         Action tab6 = drive.actionBuilder(new Pose2d(-13,13,Math.toRadians(90)))
                 //.waitSeconds(5)
-                .strafeTo(new Vector2d(35,20), new TranslationalVelConstraint(100.0))
+                .strafeTo(new Vector2d(37,20), new TranslationalVelConstraint(100.0))
 
-                .strafeTo(new Vector2d(35,50), new TranslationalVelConstraint(100.0))
+                .strafeTo(new Vector2d(37,50), new TranslationalVelConstraint(100.0))
                 .build();
         Action tab7 = drive.actionBuilder(new Pose2d(35,50,Math.toRadians(90)))
                 .strafeTo(new Vector2d(-13,13))
@@ -450,6 +453,7 @@ public class Auto2025RedNear extends LinearOpMode {
             Actions.runBlocking(
                     new ParallelAction(
                             launcher.revMotor(),
+                            turret.turretGo(),
                             new SequentialAction(
 
                                     tab1, // move to launch position

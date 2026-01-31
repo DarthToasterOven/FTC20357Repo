@@ -62,7 +62,7 @@ public class IntakeV2 {
 
     }
 
-    public void runlauncher() {
+    public void runLauncher() {
         //targetVel = -1* calcLaunch(0);
         //double ff = Math.cos(Math.toRadians(targetVel /ticks_in_degrees)) * f1;
             if (gamepad2.left_bumper)
@@ -102,8 +102,8 @@ public class IntakeV2 {
 
             if (gamepad2.right_trigger > 0.1) {
                 if (Math.abs(launch.getVelocity() - targetVel) <= threshold) { //threshold velocity
-                    trans.setPower(1);
-                    intakeMotor.setPower(-1);
+                    trans.setPower(0.8);
+                    intakeMotor.setPower(-0.67);
                 }
                 else {
                     trans.setPower(0);
@@ -124,12 +124,12 @@ public class IntakeV2 {
     public void runIntake() {
         //Moves ball into robot
         if (gamepad1.right_trigger > 0.25) {
-            intakeMotor.setPower(-gamepad1.right_trigger);
+            intakeMotor.setPower(-gamepad1.right_trigger * 0.67);
         }
 
         //Moves ball out of robot
         if (gamepad1.left_trigger > 0.25) {
-            intakeMotor.setPower(gamepad1.left_trigger);
+            intakeMotor.setPower(gamepad1.left_trigger * 0.67);
         }
         if (gamepad1.left_trigger < 0.25 && gamepad1.right_trigger < 0.25 && gamepad2.right_trigger <0.25) {// turns off the motor if both triggers are not pressed
             intakeMotor.setPower(0);
@@ -152,15 +152,16 @@ public class IntakeV2 {
 
     public void transfer(){
         if(gamepad1.right_trigger > 0.25 &&  c3.blue() < 150){
-            trans.setPower(0.25);
+            trans.setPower(0.35);
+        }
+        else{
+            trans.setPower(0);
         }
         if(gamepad1.left_bumper){
             trans.setPower(-0.35);
         }
 
-        if(gamepad1.leftBumperWasReleased() || gamepad1.rightBumperWasReleased()){
-            trans.setPower(0);
-        }
+
     }
     public double getLauncherSpeed() {
         return launch.getVelocity();
@@ -175,7 +176,7 @@ public class IntakeV2 {
     {{
         add(0.0, 900.0);
         add(0.6, 1000.0);
-        add(1.4, 1200.0);
+        add(1.4, 1180.0);
         add(3.1, 1450.0);
     }};
 
@@ -186,7 +187,7 @@ public class IntakeV2 {
 
         // Get distance
         for (AprilTagDetection d : aprilTag.getDetections()) {
-            if (d.metadata != null && (d.id == 24 || d.id == 23)) {
+            if (d.metadata != null && (d.id == 24 || d.id == 20)) {
                 distance = d.ftcPose.range * 0.0254;
                 tagSeen = true;
                 break;
@@ -237,7 +238,7 @@ public class IntakeV2 {
 
         // Get distance
         for (AprilTagDetection d : aprilTag.getDetections()) {
-            if (d.metadata != null && (d.id == 24 || d.id == 23)) {
+            if (d.metadata != null && (d.id == 24 || d.id == 20)) {
                 distance = d.ftcPose.range * 0.0254;
                 tagSeen = true;
                 break;

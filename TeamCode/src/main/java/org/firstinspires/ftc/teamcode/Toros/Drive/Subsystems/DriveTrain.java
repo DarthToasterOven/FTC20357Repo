@@ -125,9 +125,6 @@ public class DriveTrain {
         BackLeftMotor.setPower(backLeftPower);
         FrontRightMotor.setPower(frontRightPower);
         BackRightMotor.setPower(backRightPower);
-
-
-
     }
 
     public void driveRobotCentric(){
