@@ -129,7 +129,7 @@ public class DriveTrain {
 
     public void driveRobotCentric(){
 
-        if(gamepad1.rightBumperWasPressed()){
+        if(gamepad1.xWasPressed()){
             imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(
                     RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
                     RevHubOrientationOnRobot.UsbFacingDirection.UP)));

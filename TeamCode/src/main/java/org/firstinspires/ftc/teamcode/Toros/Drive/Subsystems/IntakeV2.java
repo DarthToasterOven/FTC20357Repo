@@ -103,7 +103,7 @@ public class IntakeV2 {
             if (gamepad2.right_trigger > 0.1) {
                 if (Math.abs(launch.getVelocity() - targetVel) <= threshold) { //threshold velocity
                     trans.setPower(0.8);
-                    intakeMotor.setPower(-0.67);
+                    intakeMotor.setPower(-0.5);
                 }
                 else {
                     trans.setPower(0);
@@ -124,12 +124,12 @@ public class IntakeV2 {
     public void runIntake() {
         //Moves ball into robot
         if (gamepad1.right_trigger > 0.25) {
-            intakeMotor.setPower(-gamepad1.right_trigger * 0.67);
+            intakeMotor.setPower(-gamepad1.right_trigger * 0.5);
         }
 
         //Moves ball out of robot
         if (gamepad1.left_trigger > 0.25) {
-            intakeMotor.setPower(gamepad1.left_trigger * 0.67);
+            intakeMotor.setPower(gamepad1.left_trigger * 0.5);
         }
         if (gamepad1.left_trigger < 0.25 && gamepad1.right_trigger < 0.25 && gamepad2.right_trigger <0.25) {// turns off the motor if both triggers are not pressed
             intakeMotor.setPower(0);
@@ -235,7 +235,6 @@ public class IntakeV2 {
         double distance = lastDistance;
         boolean tagSeen = false;
         double hoodAngleDeg = 60;
-
         // Get distance
         for (AprilTagDetection d : aprilTag.getDetections()) {
             if (d.metadata != null && (d.id == 24 || d.id == 20)) {
@@ -243,62 +242,31 @@ public class IntakeV2 {
                 tagSeen = true;
                 break;
             }
-
         }
-
         if (tagSeen){
             lastDistance = distance;
         }
-
         // Define distance
         distance = Math.max(0.1, Math.min(4, distance));
-
         //get hood angle (degrees)
-
         hoodAngleDeg = 60 + (distance - 0.6) * (40 - 60) / (1 - 0.5);
-
-
-
         // Define hood angle
         hoodAngleDeg = Math.max(40, Math.min(60, hoodAngleDeg));
         double hoodValue = minServo + ((60-hoodAngleDeg) / 20) * (maxServo - minServo);
         hood.setPosition(hoodValue);
-
-
         // Convert to rad
         double theta = Math.toRadians(hoodAngleDeg);
-
         // sqrt not 0 (very annoying)
         double denom = 2*Math.pow(Math.cos(theta), 2) * (distance *Math.tan(theta) - h);
         if (denom <= 0) return targetVel;
-
         // the actual calculation
         double v = distance * Math.sqrt(9.81 /denom);
-
         // Linear to angular to ticks/sec
         double omega = v / flywheelRadius;
         ticksPerSecond = omega * 28 / (2 * Math.PI);
-
         //tuning
-
-        if (distance <= 1) {
-            k = -2.7;
-        }
-        if (distance > 1){
-            k = -2.7;
-        }
-        if (distance > 1.2){
-            k = -2.1;
-        }
-        if (distance > 2.6){
-            k = -2.65;
-        }
-
-
         ticksPerSecond *= k;
-
         targetVel = (int) ticksPerSecond;
-
         return (int) ticksPerSecond;
     }
 
