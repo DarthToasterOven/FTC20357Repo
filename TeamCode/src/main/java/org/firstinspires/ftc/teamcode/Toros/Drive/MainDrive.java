@@ -58,7 +58,7 @@ public class MainDrive extends LinearOpMode {
 
         waitForStart();
         // runs all of the systems
-        while (opModeIsActive()){
+        while (opModeIsActive()) {
 
 
             initTelemetry();
@@ -67,8 +67,13 @@ public class MainDrive extends LinearOpMode {
             drivetrain.driveRobotCentric();
 
 
+            if (lockedOn){
+                turret.runTurretNoGyro();
+            }
+            else {
+                turret.runTurretGyro();
+            }
             lockOn();
-            turret.runTurret();
 
             intake.runLauncher();
             intake.runIntake();
