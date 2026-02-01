@@ -62,14 +62,14 @@ public class IntakeV2 {
 
     }
 
-    public void launcher() {
+    public void runLauncher() {
         //targetVel = -1* calcLaunch(0);
         //double ff = Math.cos(Math.toRadians(targetVel /ticks_in_degrees)) * f1;
             if (gamepad2.left_bumper)
             {
                 //targetVel = airsort;
                 targetVel = -1480;
-                hood.setPosition(0);
+                hood.setPosition(0.8);
             }
             else {
                 targetVel = calcLaunch1();
@@ -102,8 +102,8 @@ public class IntakeV2 {
 
             if (gamepad2.right_trigger > 0.1) {
                 if (Math.abs(launch.getVelocity() - targetVel) <= threshold) { //threshold velocity
-                    trans.setPower(1);
-                    intakeMotor.setPower(-1);
+                    trans.setPower(0.8);
+                    intakeMotor.setPower(-0.5);
                 }
                 else {
                     trans.setPower(0);
@@ -124,12 +124,12 @@ public class IntakeV2 {
     public void runIntake() {
         //Moves ball into robot
         if (gamepad1.right_trigger > 0.25) {
-            intakeMotor.setPower(-gamepad1.right_trigger * 0.67);
+            intakeMotor.setPower(-gamepad1.right_trigger * 0.5);
         }
 
         //Moves ball out of robot
         if (gamepad1.left_trigger > 0.25) {
-            intakeMotor.setPower(gamepad1.left_trigger);
+            intakeMotor.setPower(gamepad1.left_trigger * 0.5);
         }
         if (gamepad1.left_trigger < 0.25 && gamepad1.right_trigger < 0.25 && gamepad2.right_trigger <0.25) {// turns off the motor if both triggers are not pressed
             intakeMotor.setPower(0);
@@ -147,20 +147,26 @@ public class IntakeV2 {
         }
 
 
-
         }
 
     public void transfer(){
+        if (gamepad1.right_bumper && c3.blue() > 150){
+            trans.setPower(-0.15);
+        }
         if(gamepad1.right_trigger > 0.25 &&  c3.blue() < 150){
-            trans.setPower(0.25);
+            trans.setPower(0.35);
+        }
+        else if(gamepad1.right_bumper){
+            trans.setPower(0.35);
+        }
+        else{
+            trans.setPower(0);
         }
         if(gamepad1.left_bumper){
             trans.setPower(-0.35);
         }
 
-        if(gamepad1.leftBumperWasReleased() || gamepad1.rightBumperWasReleased()){
-            trans.setPower(0);
-        }
+
     }
     public double getLauncherSpeed() {
         return launch.getVelocity();
@@ -174,19 +180,19 @@ public class IntakeV2 {
     LUT<Double, Double> speeds = new LUT<Double, Double>()
     {{
         add(0.0, 900.0);
-        add(0.6, 1000.0);
-        add(1.4, 1200.0);
+        add(0.8, 1000.0);
+        add(1.4, 1180.0);
         add(3.1, 1450.0);
     }};
 
     public double calcLaunch1() {
         double distance = lastDistance;
         boolean tagSeen = false;
-        double hoodAngleDeg;
+        double hoodAngleDeg = 60;
 
         // Get distance
         for (AprilTagDetection d : aprilTag.getDetections()) {
-            if (d.metadata != null && (d.id == 24 || d.id == 23)) {
+            if (d.metadata != null && (d.id == 24 || d.id == 20)) {
                 distance = d.ftcPose.range * 0.0254;
                 tagSeen = true;
                 break;
@@ -234,70 +240,38 @@ public class IntakeV2 {
         double distance = lastDistance;
         boolean tagSeen = false;
         double hoodAngleDeg = 60;
-
         // Get distance
         for (AprilTagDetection d : aprilTag.getDetections()) {
-            if (d.metadata != null && (d.id == 24 || d.id == 23)) {
+            if (d.metadata != null && (d.id == 24 || d.id == 20)) {
                 distance = d.ftcPose.range * 0.0254;
                 tagSeen = true;
                 break;
             }
-
         }
-
         if (tagSeen){
             lastDistance = distance;
         }
-
         // Define distance
         distance = Math.max(0.1, Math.min(4, distance));
-
         //get hood angle (degrees)
-
         hoodAngleDeg = 60 + (distance - 0.6) * (40 - 60) / (1 - 0.5);
-
-
-
         // Define hood angle
         hoodAngleDeg = Math.max(40, Math.min(60, hoodAngleDeg));
         double hoodValue = minServo + ((60-hoodAngleDeg) / 20) * (maxServo - minServo);
         hood.setPosition(hoodValue);
-
-
         // Convert to rad
         double theta = Math.toRadians(hoodAngleDeg);
-
         // sqrt not 0 (very annoying)
         double denom = 2*Math.pow(Math.cos(theta), 2) * (distance *Math.tan(theta) - h);
         if (denom <= 0) return targetVel;
-
         // the actual calculation
         double v = distance * Math.sqrt(9.81 /denom);
-
         // Linear to angular to ticks/sec
         double omega = v / flywheelRadius;
         ticksPerSecond = omega * 28 / (2 * Math.PI);
-
         //tuning
-
-        if (distance <= 1) {
-            k = -2.7;
-        }
-        if (distance > 1){
-            k = -2.7;
-        }
-        if (distance > 1.2){
-            k = -2.1;
-        }
-        if (distance > 2.6){
-            k = -2.65;
-        }
-
-
         ticksPerSecond *= k;
-
         targetVel = (int) ticksPerSecond;
-
         return (int) ticksPerSecond;
     }
 

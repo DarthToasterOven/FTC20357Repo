@@ -125,14 +125,11 @@ public class DriveTrain {
         BackLeftMotor.setPower(backLeftPower);
         FrontRightMotor.setPower(frontRightPower);
         BackRightMotor.setPower(backRightPower);
-
-
-
     }
 
     public void driveRobotCentric(){
 
-        if(gamepad1.rightBumperWasPressed()){
+        if(gamepad1.xWasPressed()){
             imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(
                     RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
                     RevHubOrientationOnRobot.UsbFacingDirection.UP)));

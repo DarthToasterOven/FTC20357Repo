@@ -49,12 +49,15 @@ public class Turret {
 
     public void runTurretGyro() {
 
+
+
         botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
         //Calculates the turret's angle and converts the targetAngle to the motor ticks
-        double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 180 * gearRatio +botHeading;
+        double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360.0 * gearRatio + botHeading;
 
-        targetPos = (384.5 * (targetAngle + (int)botHeading/2.0) / 180 * (5.0 / 2.0));
+
+        targetPos = (384.5 * (targetAngle + botHeading)) / 360.0 * (5.0 / 2.0);
         motorPosition = turretMotor.getCurrentPosition();
         SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS,kV,kA);
 
@@ -68,17 +71,16 @@ public class Turret {
 
         turretMotor.setPower(power);
 
-//        if(Math.abs(currentAngle) > 85 || Math.abs(targetAngle) > 85){
-//            targetAngle = -targetAngle + Math.copySign(10, targetAngle);
-//        }
 
-        if(Math.abs(targetAngle) > 80){
-            targetAngle = -targetAngle + Math.copySign(10, targetAngle);
+        if(Math.abs(targetAngle) > 150){
+            targetAngle = targetAngle - Math.copySign(10, targetAngle);
         }
+
+
 //        targetAngle = Math.max(-90, Math.min(90, targetAngle));
 
         if(Math.abs(gamepad2.left_stick_x) > 0.1){
-            targetAngle += gamepad2.left_stick_x *1.5;
+            targetAngle += gamepad2.left_stick_x * 4;
 
         }
         if(gamepad2.aWasPressed()){
@@ -90,15 +92,15 @@ public class Turret {
             targetAngle = botHeading - currentAngle;
         }
 
+
     }
-
-    public void runTurretBackup() {
-
+    public void runTurretNoGyro() {
 
         //Calculates the turret's angle and converts the targetAngle to the motor ticks
-        double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 180 * gearRatio;
+        double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360.0 * gearRatio;
 
-        targetPos = (384.5 * targetAngle / 180 * (5.0 / 2.0));
+
+        targetPos = (384.5 * targetAngle) / 360.0 * (5.0 / 2.0);
         motorPosition = turretMotor.getCurrentPosition();
         SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS,kV,kA);
 
@@ -112,17 +114,16 @@ public class Turret {
 
         turretMotor.setPower(power);
 
-//        if(Math.abs(currentAngle) > 85 || Math.abs(targetAngle) > 85){
-//            targetAngle = -targetAngle + Math.copySign(10, targetAngle);
-//        }
 
-        if(Math.abs(targetAngle) > 80){
-            targetAngle = -targetAngle + Math.copySign(10, targetAngle);
+        if(Math.abs(targetAngle) > 150){
+            targetAngle = targetAngle - Math.copySign(10, targetAngle);
         }
+
+
 //        targetAngle = Math.max(-90, Math.min(90, targetAngle));
 
         if(Math.abs(gamepad2.left_stick_x) > 0.1){
-            targetAngle += gamepad2.left_stick_x *1.5;
+            targetAngle += gamepad2.left_stick_x * 4;
 
         }
         if(gamepad2.aWasPressed()){
@@ -131,18 +132,18 @@ public class Turret {
         if(gamepad2.xWasPressed()){
             turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            
+//            targetAngle = botHeading - currentAngle;
         }
 
-    }
 
+    }
 
     public void setAngle(double target) {
         targetAngle = (int) target;
     }
 
     public double getTurretAngle() {
-        return (turretMotor.getCurrentPosition() / 384.5) * 180 * gearRatio + botHeading;
+        return (turretMotor.getCurrentPosition() / 384.5) * 360 * gearRatio + botHeading;
     }
 
 
