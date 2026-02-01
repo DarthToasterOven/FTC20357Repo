@@ -26,6 +26,7 @@ public class Turret {
     public double targetPos;
     IMU imu;
     public double botHeading;
+    public double k = 0;
     public boolean gyro = true;
     public Turret(HardwareMap hardwareMap, Gamepad gamepad) {
         turretMotor = hardwareMap.get(DcMotorEx.class, "turret");
@@ -94,13 +95,13 @@ public class Turret {
 
 
     }
-    public void runTurretNoGyro() {
+    public void runTurretNoGyro(double k) {
 
         //Calculates the turret's angle and converts the targetAngle to the motor ticks
-        double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360.0 * gearRatio;
+        double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360.0 * gearRatio + k;
 
 
-        targetPos = (384.5 * targetAngle) / 360.0 * (5.0 / 2.0);
+        targetPos = (384.5 * (targetAngle + (int)k)) / 360.0 * (5.0 / 2.0);
         motorPosition = turretMotor.getCurrentPosition();
         SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS,kV,kA);
 

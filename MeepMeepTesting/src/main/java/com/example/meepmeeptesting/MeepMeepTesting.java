@@ -1,6 +1,7 @@
 package com.example.meepmeeptesting;
 
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.noahbres.meepmeep.MeepMeep;
 import com.noahbres.meepmeep.core.colorscheme.scheme.ColorSchemeBlueDark;
@@ -37,18 +38,16 @@ public class MeepMeepTesting {
                 .build();
 
         myFirstBot.runAction(myFirstBot.getDrive().actionBuilder(new Pose2d(-46, -48, Math.toRadians(270)))
-                .strafeToLinearHeading(new Vector2d(-12,-12),Math.toRadians(270))
-                .waitSeconds(2.5)
-                .strafeToLinearHeading(new Vector2d(-12,-28),Math.toRadians(270))
-                .strafeTo(new Vector2d(-12,-53))
-                .strafeToLinearHeading(new Vector2d(-12,-13), Math.toRadians(270))
-                .waitSeconds(2.5)
-                .strafeToLinearHeading(new Vector2d(12,-28),Math.toRadians(270))
-                .strafeTo(new Vector2d(12,-53))
-                .strafeToLinearHeading(new Vector2d(-13,-12), Math.toRadians(270))
-                .waitSeconds(2.5)
-                .strafeToLinearHeading(new Vector2d(36,-12),Math.toRadians(270))
-                .strafeTo(new Vector2d(36,-53))
+                .strafeToLinearHeading(new Vector2d(-12,-12),Math.toRadians(270)) // Preload
+
+                .strafeToLinearHeading(new Vector2d(-12,-28),Math.toRadians(270)) // first spike
+                .strafeTo(new Vector2d(-12,-53)) // first spike intake
+                .strafeToLinearHeading(new Vector2d(-12,-13), Math.toRadians(270)) //launch first spike
+                        .setTangent(Math.toRadians(315))
+                .splineToLinearHeading(new Pose2d(12,-28,Math.toRadians(270)),Math.toRadians(270))// seconds spike
+                .strafeTo(new Vector2d(12,-53))//second spike intake
+                        .setTangent(Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(-13,-12,Math.toRadians(270)),Math.toRadians(90))
                 .build());
         mySecondBot.runAction(mySecondBot.getDrive().actionBuilder(new Pose2d(-46, 48, Math.toRadians(90)))
                 .strafeToLinearHeading(new Vector2d(-13,13),Math.toRadians(90))
@@ -105,9 +104,9 @@ public class MeepMeepTesting {
                 .setDarkMode(true)
                 .setBackgroundAlpha(0.95f)
                 // Add both of our declared bot entities
-//                .addEntity(myFirstBot)
+                .addEntity(myFirstBot)
 //                .addEntity(mySecondBot)
-               .addEntity(myThirdBot)
+               //.addEntity(myThirdBot)
                 //.addEntity(myFourthBot)
                 .start();
     }

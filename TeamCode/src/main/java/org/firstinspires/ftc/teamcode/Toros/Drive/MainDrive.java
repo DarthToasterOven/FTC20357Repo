@@ -39,6 +39,7 @@ public class MainDrive extends LinearOpMode {
     private boolean lockedOn = false;
     private boolean mode = false;
     private double bearing;
+    double k = 0;
 
 
     @Override
@@ -66,7 +67,13 @@ public class MainDrive extends LinearOpMode {
             getMotif();
             drivetrain.driveRobotCentric();
 
-            turret.runTurretNoGyro();
+            if(lockedOn){
+
+                turret.runTurretNoGyro(k);
+            }
+            else{
+                turret.runTurretGyro();
+            }
 
             lockOn();
 
@@ -168,6 +175,7 @@ public class MainDrive extends LinearOpMode {
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         if (gamepad2.yWasPressed()) {
             lockedOn = true;
+            k = drivetrain.getHeading();
 
         } else if (gamepad2.bWasPressed()) {
             lockedOn = false;
