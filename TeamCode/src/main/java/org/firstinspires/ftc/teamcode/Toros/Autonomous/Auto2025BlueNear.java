@@ -207,11 +207,12 @@ public class Auto2025BlueNear extends LinearOpMode {
                 }
                 double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
-                double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360 * gearRatio +botHeading;
+                double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360 * gearRatio;
 
-                double targetPos = (384.5 * (targetAngle + (int)botHeading) / 360 * (5.0 / 2.0));
+                double targetPos = (384.5 * targetAngle) / 360 * (5.0 / 2.0);
                 double motorPosition = turretMotor.getCurrentPosition();
                 SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS2, kV2, kA2);
+
 
                 controller.setPID(p1,i1,d1);
                 double turretPos = turretMotor.getCurrentPosition();
@@ -461,7 +462,7 @@ public class Auto2025BlueNear extends LinearOpMode {
                             launcher.revMotor(),
                             turret.turretGo(),
                             new SequentialAction(
-                                    turret.changeAngle(40),
+                                    turret.changeAngle(44),
                                     tab1, // move to launch position
                                     launcher.fireBallPre(), // +3 (preloaded)
                                     new ParallelAction(//1st spike,

@@ -66,13 +66,8 @@ public class MainDrive extends LinearOpMode {
             getMotif();
             drivetrain.driveRobotCentric();
 
+            turret.runTurretNoGyro();
 
-            if (lockedOn){
-                turret.runTurretNoGyro();
-            }
-            else {
-                turret.runTurretGyro();
-            }
             lockOn();
 
             intake.runLauncher();
@@ -171,14 +166,14 @@ public class MainDrive extends LinearOpMode {
     private void lockOn(){
 
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+        if (gamepad2.yWasPressed()) {
+            lockedOn = true;
 
+        } else if (gamepad2.bWasPressed()) {
+            lockedOn = false;
+        }
         for(AprilTagDetection detection: currentDetections) {
-            if (gamepad2.yWasPressed()) {
-                lockedOn = true;
 
-            } else if (gamepad2.bWasPressed()) {
-                lockedOn = false;
-            }
            // }else {lockedOn = true;}
             // Rumble if aimed
             if (detection.metadata != null && Math.abs(detection.ftcPose.bearing) < 2 && (detection.id == 20 || detection.id == 24)) {

@@ -207,9 +207,9 @@ public class BlueNearExp extends LinearOpMode {
                 }
                 double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
-                double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360 * gearRatio +botHeading;
+                double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360 * gearRatio;
 
-                double targetPos = (384.5 * (targetAngle + (int)botHeading) / 360 * (5.0 / 2.0));
+                double targetPos = (384.5 * targetAngle) / 360 * (5.0 / 2.0);
                 double motorPosition = turretMotor.getCurrentPosition();
                 SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS2, kV2, kA2);
 
@@ -283,7 +283,7 @@ public class BlueNearExp extends LinearOpMode {
                     trans.setPower(-0.1);
                     init = true;
                 }
-                if(timer.seconds() < 0.8){
+                if(timer.seconds() < 1.0){
                     return true;
                 }
                 else{
@@ -308,7 +308,7 @@ public class BlueNearExp extends LinearOpMode {
                     timer = new ElapsedTime();
                 }
 
-                if(timer.seconds() < 1.4 ){
+                if(timer.seconds() < 2.1 ){
                     return true;
                 }
                 else{
@@ -439,14 +439,15 @@ public class BlueNearExp extends LinearOpMode {
                 .strafeToLinearHeading(new Vector2d(-5,-15), Math.toRadians(270))
 
                 .build();
-        Action tab6 = drive.actionBuilder(new Pose2d(-13,-13,Math.toRadians(270)))
+        Action tab6 = drive.actionBuilder(new Pose2d(-5,-15,Math.toRadians(270)))
                 //.waitSeconds(5)
-                .strafeTo(new Vector2d(37,-20), new TranslationalVelConstraint(100.0))
+                .strafeToLinearHeading(new Vector2d(15,-60), Math.toRadians(235))
 
-                .strafeTo(new Vector2d(37,-50), new TranslationalVelConstraint(100.0))
+//              .waitSeconds(2.5)
                 .build();
-        Action tab7 = drive.actionBuilder(new Pose2d(35,-50,Math.toRadians(270)))
-                .strafeTo(new Vector2d(-13,-13))
+        Action tab7 = drive.actionBuilder(new Pose2d(10,-57,Math.toRadians(235)))
+                .strafeToLinearHeading(new Vector2d(-5,-15), Math.toRadians(270))
+
                 .build();
         Action tab8 = drive.actionBuilder(new Pose2d(-13,-13,Math.toRadians(270)))
                 .strafeToLinearHeading(new Vector2d(0,-30), Math.toRadians(180))
@@ -459,7 +460,7 @@ public class BlueNearExp extends LinearOpMode {
                             launcher.revMotor(),
                             turret.turretGo(),
                             new SequentialAction(
-                                    turret.changeAngle(40),
+                                    turret.changeAngle(44),
                                     tab1, // move to launch position
                                     launcher.fireBallPre(), // +3 (preloaded)
                                     new ParallelAction(//1st spike,
@@ -485,7 +486,7 @@ public class BlueNearExp extends LinearOpMode {
                                     launcher.fireBall(), // + 9
 
                                     new ParallelAction(
-                                            tab4,
+                                            tab6,
                                             new SequentialAction(
                                                     new SleepAction(1.1),
                                                     new ParallelAction(
@@ -494,7 +495,10 @@ public class BlueNearExp extends LinearOpMode {
                                                     )
                                             )
 
-                                    )
+                                    ),
+                                    tab7,
+                                    launcher.fireBall() // + 9
+
 
 
                             )

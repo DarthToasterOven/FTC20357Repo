@@ -147,11 +147,16 @@ public class IntakeV2 {
         }
 
 
-
         }
 
     public void transfer(){
+        if (gamepad1.right_bumper && c3.blue() > 150){
+            trans.setPower(-0.15);
+        }
         if(gamepad1.right_trigger > 0.25 &&  c3.blue() < 150){
+            trans.setPower(0.35);
+        }
+        else if(gamepad1.right_bumper){
             trans.setPower(0.35);
         }
         else{
@@ -175,7 +180,7 @@ public class IntakeV2 {
     LUT<Double, Double> speeds = new LUT<Double, Double>()
     {{
         add(0.0, 900.0);
-        add(0.6, 1000.0);
+        add(0.8, 1000.0);
         add(1.4, 1180.0);
         add(3.1, 1450.0);
     }};

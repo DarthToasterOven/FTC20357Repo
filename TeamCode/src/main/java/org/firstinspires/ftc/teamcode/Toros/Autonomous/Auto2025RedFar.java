@@ -20,6 +20,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -44,13 +45,15 @@ public class Auto2025RedFar extends LinearOpMode {
     private DcMotor intake;
     private PIDController controller;
 
-    public static double p1 = 0.01, i1 = 0.6, d1 = 0;
-    public static double kS = 0.025,kV = 0.001,kA = -0.025;
+    public static double p1 = 0.0045, i1 = 0, d1 = 0;
+    public static double kS1 = 0.001, kV1 = 0.00055, kA1 = -0;
     public static double accel = 20;
 
-    public static double p2 = 0.006012 , i2 = 0.00065, d2 = 0.0004314;
+    public static double p2 = 0.00625 , i2 = 0.0, d2 = 0.00055;
+    public static double kS2 = 0, kV2 = 0.000125, kA2 = 0;
 
-    public static int targetVel = -1550;
+    double gearRatio = 2.0 / 5.0;
+    public static int targetVel = -1510;
     public static int targetAngle = 0;
 
 
@@ -83,19 +86,19 @@ public class Auto2025RedFar extends LinearOpMode {
                 if(!init) {
                     timer.reset();
                     init = true;
-                    hood.setPosition(1);
+                    hood.setPosition(0.9);
                 }
-                if (launch.getVelocity() <= -1450) { //1585
+                if (launch.getVelocity() <= -1477) { //1585
 
                     trans.setPower(-1);
-                    intake.setPower(-1);
+                    intake.setPower(-0.57);
 
-                } else if (launch.getVelocity() >= -1450) {
+                } else if (launch.getVelocity() >= -1477) {
                     trans.setPower(0);
                     intake.setPower(0);
                 }
                 telemetryPacket.put("time",timer.seconds());
-                if(timer.seconds() < 1.5){
+                if(timer.seconds() < 4){
                     return true;
                 }
                 else{
@@ -128,26 +131,25 @@ public class Auto2025RedFar extends LinearOpMode {
                 if(!init) {
                     timer.reset();
                     init = true;
-                    hood.setPosition(1);
+                    hood.setPosition(0.9);
                 }
-                if (launch.getVelocity() <= -1450) { //1585
+                if (launch.getVelocity() <= -1477) { //1585
 
                     trans.setPower(-1);
-                    intake.setPower(-1);
+                    intake.setPower(-0.57);
 
-                } else if (launch.getVelocity() >= -1450) {
+                } else if (launch.getVelocity() >= -1477) {
                     trans.setPower(0);
                     intake.setPower(0);
                 }
                 telemetryPacket.put("time",timer.seconds());
-                if(timer.seconds() < 5){
+                if(timer.seconds() < 7){
                     return true;
                 }
                 else{
                     launch.setPower(0);
                     trans.setPower(0);
                     intake.setPower(0);
-
                     return false;
                 }
             }
@@ -165,7 +167,7 @@ public class Auto2025RedFar extends LinearOpMode {
                     controller.setPID(p1, i1, d1);
                 }
                 double launchVel = launch.getVelocity();
-                SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS,kV,kA);
+                SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS1, kV1, kA1);
                 double pid = controller.calculate(launchVel, targetVel);
                 double ff = feedforward.calculate(targetVel,accel);
                 double power = pid + ff;
@@ -180,13 +182,15 @@ public class Auto2025RedFar extends LinearOpMode {
     public class Turret{
         public Turret(HardwareMap hardwareMap){
             turretMotor = hardwareMap.get(DcMotorEx.class,"turret");
+            turretMotor.setDirection(DcMotorSimple.Direction.REVERSE);
             turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             controller = new PIDController(p2, i2, d2);
             imu = hardwareMap.get(IMU.class, "imu");
             IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                    RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                    RevHubOrientationOnRobot.UsbFacingDirection.LEFT
+                    RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
+                    RevHubOrientationOnRobot.UsbFacingDirection.UP
             ));
 
             imu.initialize(parameters);
@@ -203,16 +207,21 @@ public class Auto2025RedFar extends LinearOpMode {
                 }
                 double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
 
-                //Calculates the turret's angle and converts the targetAngle to the motor ticks
-                double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 180.0 * (2.0/5.0) + (botHeading/2);
+                double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360 * gearRatio;
 
-                double targetPos = (384.5 * targetAngle + (int)botHeading/2) / 180.0 * (5.0 / 2.0);
-                int motorPosition = turretMotor.getCurrentPosition();
-
-                //Hard limit originally was supposed to be a wrap around
+                double targetPos = (384.5 * targetAngle) / 360 * (5.0 / 2.0);
+                double motorPosition = turretMotor.getCurrentPosition();
+                SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS2, kV2, kA2);
 
 
-                double power = controller.calculate(motorPosition, targetPos);
+                controller.setPID(p1,i1,d1);
+                double turretPos = turretMotor.getCurrentPosition();
+                double pid2 = controller.calculate(turretPos, targetPos);
+                double ff = feedforward.calculate(targetPos);
+
+
+                double power = pid2 + ff;
+
                 turretMotor.setPower(power);
                 return true;
             }
@@ -248,7 +257,7 @@ public class Auto2025RedFar extends LinearOpMode {
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 if (!init) {
                     trans.setPower(-0.18);
-                    intake.setPower(-1);
+                    intake.setPower(-0.55);
                     init = true;
                     timer = new ElapsedTime();
                 }
@@ -272,10 +281,10 @@ public class Auto2025RedFar extends LinearOpMode {
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 if(!init){
                     timer = new ElapsedTime();
-                    trans.setPower(-0.1);
+                    trans.setPower(0.1);
                     init = true;
                 }
-                if(timer.seconds() < 2.4){
+                if(timer.seconds() < 0.4){
                     return true;
                 }
                 else{
@@ -295,12 +304,12 @@ public class Auto2025RedFar extends LinearOpMode {
 
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 if (!init) {
-                    intake.setPower(-1);
+                    intake.setPower(-0.57);
                     init = true;
                     timer = new ElapsedTime();
                 }
 
-                if(timer.seconds() < 2.5 ){
+                if(timer.seconds() < 5.1){
                     return true;
                 }
                 else{
@@ -405,42 +414,44 @@ public class Auto2025RedFar extends LinearOpMode {
         waitForStart();
 
         Action tab1 = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(50,50),Math.toRadians(80), new TranslationalVelConstraint(40.0))
-//                .stopAndAdd(scanMotif())
-//                .turn(Math.toRadians(70))
+                .strafeToLinearHeading(new Vector2d(60,62), Math.toRadians(90))
+
                 .build();
-        Action tab2 = drive.actionBuilder(new Pose2d(50,50,Math.toRadians(80)))//set var constraint later
-                .strafeToLinearHeading(new Vector2d(60,62),Math.toRadians(90), new TranslationalVelConstraint(15.0))
+        Action tab2 = drive.actionBuilder(new Pose2d(60,62,Math.toRadians(90)))//set var constraint later
+
+                .strafeToLinearHeading(new Vector2d(50,64), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(60,50), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(60,62), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(50,67), Math.toRadians(90))
+
                 .build();
-        Action tab3 = drive.actionBuilder(new Pose2d(60,62,Math.toRadians(90)))
+        Action tab3 = drive.actionBuilder(new Pose2d(50,60,Math.toRadians(90)))
+                //.waitSeconds(1.5)
+                .strafeToLinearHeading(new Vector2d(60,20), Math.toRadians(90), new TranslationalVelConstraint(20))
 
-                .strafeToLinearHeading(new Vector2d(60,12),Math.toRadians(90), new TranslationalVelConstraint(40.0))
                 .build();
-
-
-
-
-
-        Action tab4 = drive.actionBuilder(new Pose2d(-13,13,Math.toRadians(90)))
+        Action tab4 = drive.actionBuilder(new Pose2d(60,15,Math.toRadians(90)))
                 //.waitSeconds(5)
-                .strafeToLinearHeading(new Vector2d(14,28),Math.toRadians(90))
-                .strafeTo(new Vector2d(14,55), new TranslationalVelConstraint(100.0))
+
+                .strafeTo(new Vector2d(55, 40))
+
 //              .waitSeconds(2.5)
                 .build();
         Action tab5 = drive.actionBuilder(new Pose2d(14,55,Math.toRadians(90)))
-                .strafeToLinearHeading(new Vector2d(-13,13), Math.toRadians(90))
-                .build();
-        Action tab6 = drive.actionBuilder(new Pose2d(-13,13,Math.toRadians(90)))
-                //.waitSeconds(5)
-                .strafeToLinearHeading(new Vector2d(35,20),Math.toRadians(90), new TranslationalVelConstraint(100.0))
+                .strafeToLinearHeading(new Vector2d(55,12), Math.toRadians(270))
 
-                .strafeTo(new Vector2d(35,50), new TranslationalVelConstraint(100.0))
                 .build();
-        Action tab7 = drive.actionBuilder(new Pose2d(35,50,Math.toRadians(90)))
-                .strafeToLinearHeading(new Vector2d(-13,13),Math.toRadians(90))
+        Action tab6 = drive.actionBuilder(new Pose2d(55,12,Math.toRadians(90)))
+                //.waitSeconds(5)
+                .strafeTo(new Vector2d(50,5), new TranslationalVelConstraint(100.0))
+
+                .strafeTo(new Vector2d(37,50), new TranslationalVelConstraint(100.0))
                 .build();
-        Action tab8 = drive.actionBuilder(new Pose2d(-13,13,Math.toRadians(90)))
-                .strafeToLinearHeading(new Vector2d(0,30),Math.toRadians(0))
+        Action tab7 = drive.actionBuilder(new Pose2d(35,50,Math.toRadians(270)))
+                .strafeTo(new Vector2d(-13,13))
+                .build();
+        Action tab8 = drive.actionBuilder(new Pose2d(-13,-13,Math.toRadians(270)))
+                .strafeToLinearHeading(new Vector2d(50,-20), Math.toRadians(270))
                 .build();
 
 
@@ -448,17 +459,24 @@ public class Auto2025RedFar extends LinearOpMode {
             Actions.runBlocking(
                     new ParallelAction(
                             launcher.revMotor(),
+                            turret.turretGo(),
                             new SequentialAction(
-                                    launcher.fireBallPre(), // + 3
-                                    tab1,
-                                    new ParallelAction(//Human,
-                                            tab2,
+                                    turret.changeAngle(-69),
+                                    launcher.fireBallPre(), // +3 (preloaded)
+                                    new ParallelAction(//1st spike,
                                             intake.intakeRun(),
-                                            intake.transRun()
+                                            intake.transRun(),
+                                            tab1,
+                                            tab2
+
                                     ),
-                                    tab3,
-                                    launcher.fireBall()
+                                    tab3, // move to launch
+                                    launcher.fireBall(), // +6
+
+                                    tab4
                             )
+
+
                     )
             );
 
