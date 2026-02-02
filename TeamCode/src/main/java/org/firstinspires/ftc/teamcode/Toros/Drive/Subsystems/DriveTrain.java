@@ -102,9 +102,9 @@ public class DriveTrain {
         //In summary based of the angle the powers will be different changing how the robot moves
 
         botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-        double rotX = x * Math.cos(botHeading) - y * Math.sin(botHeading);
-        double rotY = x * Math.sin(botHeading) + y * Math.cos(botHeading);
-        rotX = -rotX*1.1;
+        double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
+        double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+        rotX = rotX*1.1;
 
         //The denominator variable ensures a max value so as to not allocate extra unusable power to the robot
         double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(turn), 1);

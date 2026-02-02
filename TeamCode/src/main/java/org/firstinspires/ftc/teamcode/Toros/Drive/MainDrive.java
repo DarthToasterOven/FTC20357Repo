@@ -60,13 +60,21 @@ public class MainDrive extends LinearOpMode {
         waitForStart();
         // runs all of the systems
         while (opModeIsActive()) {
+            if(gamepad1.leftStickButtonWasPressed()){
+                mode = !mode;
+            }
+
 
 
             initTelemetry();
             telemetryAprilTag();
             getMotif();
-            drivetrain.driveRobotCentric();
-
+            if(!mode) {
+                drivetrain.driveRobotCentric();
+            }
+            else{
+                drivetrain.driveFieldCentric();
+            }
             if(lockedOn){
 
                 turret.runTurretNoGyro(k);
@@ -179,6 +187,7 @@ public class MainDrive extends LinearOpMode {
 
         } else if (gamepad2.bWasPressed()) {
             lockedOn = false;
+            turret.reset();
         }
         for(AprilTagDetection detection: currentDetections) {
 
