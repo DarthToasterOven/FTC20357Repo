@@ -151,8 +151,5 @@ public class Turret {
     public void turretPow(double calc){
         turretMotor.setPower(calc);
     }
-    public void reset(){
-        imu.resetYaw();
-    }
 }
 

@@ -53,7 +53,7 @@ public class Auto2025BlueNear extends LinearOpMode {
     public static double kS2 = 0, kV2 = 0.000125, kA2 = 0;
 
     double gearRatio = 2.0 / 5.0;
-    public static int defaultTargetVel = -1255; ////default
+    public static int defaultTargetVel = -1275; ////default
     public static int targetVel = defaultTargetVel;
     public static int targetAngle = 0;
 
@@ -90,13 +90,11 @@ public class Auto2025BlueNear extends LinearOpMode {
                     hood.setPosition(1);
                 }
                 if (launch.getVelocity() <= -1230) { //1585
-                    targetVel +=500;
+
                     trans.setPower(-1);
                     intake.setPower(-1);
 
-
                 } else if (launch.getVelocity() >= -1230) {
-                    targetVel -= 500;
                     trans.setPower(0);
                     intake.setPower(0);
                 }
@@ -137,12 +135,11 @@ public class Auto2025BlueNear extends LinearOpMode {
                     hood.setPosition(1);
                 }
                 if (launch.getVelocity() <= -1230) { //1585
-                    trans.setPower(-1);
-                    intake.setPower(-1);
 
+                    trans.setPower(-1);
+                    intake.setPower(-0.67);
 
                 } else if (launch.getVelocity() >= -1230) {
-                    targetVel -= 150;
                     trans.setPower(0);
                     intake.setPower(0);
                 }
@@ -471,8 +468,8 @@ public class Auto2025BlueNear extends LinearOpMode {
                             launcher.revMotor(),
                             turret.turretGo(),
                             new SequentialAction(
-                                    launcher.SettargetVel(-1350),
-                                    turret.changeAngle(42),
+                                    launcher.SettargetVel(-1800),
+                                    turret.changeAngle(44),
                                     tab1, // move to launch position
                                     launcher.SettargetVel(defaultTargetVel),
                                     launcher.fireBallPre(), // +3 (preloaded)
@@ -497,19 +494,19 @@ public class Auto2025BlueNear extends LinearOpMode {
                                     ),
                                     tab5,
                                     launcher.fireBall(), // + 9
-//                                    new ParallelAction( // 3rd spike
-//                                            tab6,
-//                                            new SequentialAction(
-//                                                    new SleepAction(2.1),
-//                                                    new ParallelAction(
-//                                                            intake.intakeRun(),
-//                                                            intake.transRun()
-//
-//                                                    )
-//                                            )
-//                                    ),
-//                                    tab7,
-//                                    launcher.fireBall(),
+                                    new ParallelAction( // 3rd spike
+                                            tab6,
+                                            new SequentialAction(
+                                                    new SleepAction(2.1),
+                                                    new ParallelAction(
+                                                            intake.intakeRun(),
+                                                            intake.transRun()
+
+                                                    )
+                                            )
+                                    ),
+                                    tab7,
+                                    launcher.fireBall(),
                                     //turret.changeAngle(0),
                                     tab8
                             )
