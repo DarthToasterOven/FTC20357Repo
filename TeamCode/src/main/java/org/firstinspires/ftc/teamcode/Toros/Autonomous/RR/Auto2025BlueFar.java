@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Toros.Autonomous;
+package org.firstinspires.ftc.teamcode.Toros.Autonomous.RR;
 
 import androidx.annotation.NonNull;
 
@@ -8,7 +8,6 @@ import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
@@ -37,8 +36,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.ArrayList;
 import java.util.List;
 
-@Autonomous(name = "BlueNearGate")
-public class BlueNearExp extends LinearOpMode {
+@Autonomous(name = "Auto2025BlueFar")
+public class Auto2025BlueFar extends LinearOpMode {
     public DcMotorEx launch, turretMotor, trans;
     public Servo hood;
     public ColorSensor c1,c2,c3;
@@ -53,7 +52,7 @@ public class BlueNearExp extends LinearOpMode {
     public static double kS2 = 0, kV2 = 0.000125, kA2 = 0;
 
     double gearRatio = 2.0 / 5.0;
-    public static int targetVel = -1275;
+    public static int targetVel = -1512;
     public static int targetAngle = 0;
 
 
@@ -86,19 +85,19 @@ public class BlueNearExp extends LinearOpMode {
                 if(!init) {
                     timer.reset();
                     init = true;
-                    hood.setPosition(1);
+                    hood.setPosition(0.9);
                 }
-                if (launch.getVelocity() <= -1230) { //1585
+                if (launch.getVelocity() <= -1472) { //1585
 
                     trans.setPower(-1);
-                    intake.setPower(-1);
+                    intake.setPower(-0.57);
 
-                } else if (launch.getVelocity() >= -1230) {
+                } else if (launch.getVelocity() >= -1472) {
                     trans.setPower(0);
                     intake.setPower(0);
                 }
                 telemetryPacket.put("time",timer.seconds());
-                if(timer.seconds() < 1.5){
+                if(timer.seconds() < 4){
                     return true;
                 }
                 else{
@@ -131,19 +130,19 @@ public class BlueNearExp extends LinearOpMode {
                 if(!init) {
                     timer.reset();
                     init = true;
-                    hood.setPosition(1);
+                    hood.setPosition(0.9);
                 }
-                if (launch.getVelocity() <= -1230) { //1585
+                if (launch.getVelocity() <= -1472) { //1585
 
                     trans.setPower(-1);
-                    intake.setPower(-0.67);
+                    intake.setPower(-0.57);
 
-                } else if (launch.getVelocity() >= -1230) {
+                } else if (launch.getVelocity() >= -1472) {
                     trans.setPower(0);
                     intake.setPower(0);
                 }
                 telemetryPacket.put("time",timer.seconds());
-                if(timer.seconds() < 2.7){
+                if(timer.seconds() < 7){
                     return true;
                 }
                 else{
@@ -213,6 +212,7 @@ public class BlueNearExp extends LinearOpMode {
                 double motorPosition = turretMotor.getCurrentPosition();
                 SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS2, kV2, kA2);
 
+
                 controller.setPID(p1,i1,d1);
                 double turretPos = turretMotor.getCurrentPosition();
                 double pid2 = controller.calculate(turretPos, targetPos);
@@ -256,7 +256,7 @@ public class BlueNearExp extends LinearOpMode {
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 if (!init) {
                     trans.setPower(-0.18);
-                    intake.setPower(-0.67);
+                    intake.setPower(-0.55);
                     init = true;
                     timer = new ElapsedTime();
                 }
@@ -280,10 +280,10 @@ public class BlueNearExp extends LinearOpMode {
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 if(!init){
                     timer = new ElapsedTime();
-                    trans.setPower(-0.1);
+                    trans.setPower(0.1);
                     init = true;
                 }
-                if(timer.seconds() < 1.0){
+                if(timer.seconds() < 0.4){
                     return true;
                 }
                 else{
@@ -303,12 +303,12 @@ public class BlueNearExp extends LinearOpMode {
 
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 if (!init) {
-                    intake.setPower(-1);
+                    intake.setPower(-0.57);
                     init = true;
                     timer = new ElapsedTime();
                 }
 
-                if(timer.seconds() < 2.1 ){
+                if(timer.seconds() < 5.1){
                     return true;
                 }
                 else{
@@ -400,7 +400,7 @@ public class BlueNearExp extends LinearOpMode {
 
 
 //        initAprilTag();
-        Pose2d initialPose = new Pose2d(-48, -50, Math.toRadians(270));
+        Pose2d initialPose = new Pose2d(60, -12, Math.toRadians(270));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         Launcher launcher = new Launcher(hardwareMap);
         Turret turret = new Turret(hardwareMap);
@@ -413,44 +413,44 @@ public class BlueNearExp extends LinearOpMode {
         waitForStart();
 
         Action tab1 = drive.actionBuilder(initialPose)
-                .strafeTo(new Vector2d(-5,-15), new TranslationalVelConstraint(15.0))
-//                .stopAndAdd(scanMotif())
-//                .turn(Math.toRadians(70))
-                .build();
-        Action tab2 = drive.actionBuilder(new Pose2d(-5,-15,Math.toRadians(270)))//set var constraint later
-
-                .strafeTo(new Vector2d(13,-28))
-                .strafeTo(new Vector2d(13,-55), new TranslationalVelConstraint(100.0))
-
+                .strafeToLinearHeading(new Vector2d(60,-62), Math.toRadians(270))
 
                 .build();
-        Action tab3 = drive.actionBuilder(new Pose2d(14,-55,Math.toRadians(270)))
+        Action tab2 = drive.actionBuilder(new Pose2d(60,-62,Math.toRadians(270)))//set var constraint later
+
+                .strafeToLinearHeading(new Vector2d(50,-64), Math.toRadians(270))
+                .strafeToLinearHeading(new Vector2d(60,-50), Math.toRadians(270))
+                .strafeToLinearHeading(new Vector2d(60,-62), Math.toRadians(270))
+                .strafeToLinearHeading(new Vector2d(50,-67), Math.toRadians(270))
+
+                .build();
+        Action tab3 = drive.actionBuilder(new Pose2d(50,-60,Math.toRadians(270)))
                 //.waitSeconds(1.5)
-                .strafeTo(new Vector2d(-5,-15))
+                .strafeToLinearHeading(new Vector2d(60,-20), Math.toRadians(270), new TranslationalVelConstraint(20))
 
                 .build();
-        Action tab4 = drive.actionBuilder(new Pose2d(-5,-15,Math.toRadians(270)))
+        Action tab4 = drive.actionBuilder(new Pose2d(60,-15,Math.toRadians(270)))
                 //.waitSeconds(5)
-                .strafeToLinearHeading(new Vector2d(15,-60), Math.toRadians(235))
+
+                .strafeTo(new Vector2d(55, -40))
 
 //              .waitSeconds(2.5)
                 .build();
-        Action tab5 = drive.actionBuilder(new Pose2d(10,-57,Math.toRadians(235)))
-                .strafeToLinearHeading(new Vector2d(-5,-15), Math.toRadians(270))
+        Action tab5 = drive.actionBuilder(new Pose2d(14,-55,Math.toRadians(270)))
+                .strafeToLinearHeading(new Vector2d(55,-12), Math.toRadians(270))
 
                 .build();
-        Action tab6 = drive.actionBuilder(new Pose2d(-5,-15,Math.toRadians(270)))
+        Action tab6 = drive.actionBuilder(new Pose2d(55,-12,Math.toRadians(270)))
                 //.waitSeconds(5)
-                .strafeToLinearHeading(new Vector2d(15,-60), Math.toRadians(235))
+                .strafeTo(new Vector2d(50,-5), new TranslationalVelConstraint(100.0))
 
-//              .waitSeconds(2.5)
+                .strafeTo(new Vector2d(37,-50), new TranslationalVelConstraint(100.0))
                 .build();
-        Action tab7 = drive.actionBuilder(new Pose2d(10,-57,Math.toRadians(235)))
-                .strafeToLinearHeading(new Vector2d(-5,-15), Math.toRadians(270))
-
+        Action tab7 = drive.actionBuilder(new Pose2d(35,-50,Math.toRadians(270)))
+                .strafeTo(new Vector2d(-13,-13))
                 .build();
         Action tab8 = drive.actionBuilder(new Pose2d(-13,-13,Math.toRadians(270)))
-                .strafeToLinearHeading(new Vector2d(0,-30), Math.toRadians(180))
+                .strafeToLinearHeading(new Vector2d(50,-20), Math.toRadians(270))
                 .build();
 
 
@@ -460,48 +460,22 @@ public class BlueNearExp extends LinearOpMode {
                             launcher.revMotor(),
                             turret.turretGo(),
                             new SequentialAction(
-                                    turret.changeAngle(44),
-                                    tab1, // move to launch position
+                                    turret.changeAngle(69),
                                     launcher.fireBallPre(), // +3 (preloaded)
                                     new ParallelAction(//1st spike,
-                                            tab2,
                                             intake.intakeRun(),
-                                            intake.transRun()
+                                            intake.transRun(),
+                                            tab1,
+                                            tab2
 
                                     ),
-
                                     tab3, // move to launch
                                     launcher.fireBall(), // +6
-                                    new ParallelAction( // 2nd spike
-                                            tab4,
-                                            new SequentialAction(
-                                                    new SleepAction(1.1),
-                                                    new ParallelAction(
-                                                            intake.intakeRun(),
-                                                            intake.transRun()
-                                                    )
-                                            )
-                                    ),
-                                    tab5,
-                                    launcher.fireBall(), // + 9
 
-                                    new ParallelAction(
-                                            tab6,
-                                            new SequentialAction(
-                                                    new SleepAction(1.1),
-                                                    new ParallelAction(
-                                                            intake.intakeRun(),
-                                                            intake.transRun()
-                                                    )
-                                            )
-
-                                    ),
-                                    tab7,
-                                    launcher.fireBall() // + 9
-
-
-
+                                    tab4
                             )
+
+
                     )
             );
 

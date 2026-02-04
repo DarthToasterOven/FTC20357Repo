@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Toros.Autonomous;
+package org.firstinspires.ftc.teamcode.Toros.Autonomous.RR;
 
 import androidx.annotation.NonNull;
 
@@ -8,7 +8,6 @@ import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
@@ -37,8 +36,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.ArrayList;
 import java.util.List;
 
-@Autonomous(name = "Auto2025BlueFar")
-public class Auto2025BlueFar extends LinearOpMode {
+@Autonomous(name = "Auto2025RedFar")
+public class Auto2025RedFar extends LinearOpMode {
     public DcMotorEx launch, turretMotor, trans;
     public Servo hood;
     public ColorSensor c1,c2,c3;
@@ -53,7 +52,7 @@ public class Auto2025BlueFar extends LinearOpMode {
     public static double kS2 = 0, kV2 = 0.000125, kA2 = 0;
 
     double gearRatio = 2.0 / 5.0;
-    public static int targetVel = -1512;
+    public static int targetVel = -1510;
     public static int targetAngle = 0;
 
 
@@ -88,12 +87,12 @@ public class Auto2025BlueFar extends LinearOpMode {
                     init = true;
                     hood.setPosition(0.9);
                 }
-                if (launch.getVelocity() <= -1472) { //1585
+                if (launch.getVelocity() <= -1477) { //1585
 
                     trans.setPower(-1);
                     intake.setPower(-0.57);
 
-                } else if (launch.getVelocity() >= -1472) {
+                } else if (launch.getVelocity() >= -1477) {
                     trans.setPower(0);
                     intake.setPower(0);
                 }
@@ -133,12 +132,12 @@ public class Auto2025BlueFar extends LinearOpMode {
                     init = true;
                     hood.setPosition(0.9);
                 }
-                if (launch.getVelocity() <= -1472) { //1585
+                if (launch.getVelocity() <= -1477) { //1585
 
                     trans.setPower(-1);
                     intake.setPower(-0.57);
 
-                } else if (launch.getVelocity() >= -1472) {
+                } else if (launch.getVelocity() >= -1477) {
                     trans.setPower(0);
                     intake.setPower(0);
                 }
@@ -401,7 +400,7 @@ public class Auto2025BlueFar extends LinearOpMode {
 
 
 //        initAprilTag();
-        Pose2d initialPose = new Pose2d(60, -12, Math.toRadians(270));
+        Pose2d initialPose = new Pose2d(60, 12, Math.toRadians(90));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         Launcher launcher = new Launcher(hardwareMap);
         Turret turret = new Turret(hardwareMap);
@@ -414,41 +413,41 @@ public class Auto2025BlueFar extends LinearOpMode {
         waitForStart();
 
         Action tab1 = drive.actionBuilder(initialPose)
-                .strafeToLinearHeading(new Vector2d(60,-62), Math.toRadians(270))
+                .strafeToLinearHeading(new Vector2d(60,62), Math.toRadians(90))
 
                 .build();
-        Action tab2 = drive.actionBuilder(new Pose2d(60,-62,Math.toRadians(270)))//set var constraint later
+        Action tab2 = drive.actionBuilder(new Pose2d(60,62,Math.toRadians(90)))//set var constraint later
 
-                .strafeToLinearHeading(new Vector2d(50,-64), Math.toRadians(270))
-                .strafeToLinearHeading(new Vector2d(60,-50), Math.toRadians(270))
-                .strafeToLinearHeading(new Vector2d(60,-62), Math.toRadians(270))
-                .strafeToLinearHeading(new Vector2d(50,-67), Math.toRadians(270))
+                .strafeToLinearHeading(new Vector2d(50,64), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(60,50), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(60,62), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(50,67), Math.toRadians(90))
 
                 .build();
-        Action tab3 = drive.actionBuilder(new Pose2d(50,-60,Math.toRadians(270)))
+        Action tab3 = drive.actionBuilder(new Pose2d(50,60,Math.toRadians(90)))
                 //.waitSeconds(1.5)
-                .strafeToLinearHeading(new Vector2d(60,-20), Math.toRadians(270), new TranslationalVelConstraint(20))
+                .strafeToLinearHeading(new Vector2d(60,20), Math.toRadians(90), new TranslationalVelConstraint(20))
 
                 .build();
-        Action tab4 = drive.actionBuilder(new Pose2d(60,-15,Math.toRadians(270)))
+        Action tab4 = drive.actionBuilder(new Pose2d(60,15,Math.toRadians(90)))
                 //.waitSeconds(5)
 
-                .strafeTo(new Vector2d(55, -40))
+                .strafeTo(new Vector2d(55, 40))
 
 //              .waitSeconds(2.5)
                 .build();
-        Action tab5 = drive.actionBuilder(new Pose2d(14,-55,Math.toRadians(270)))
-                .strafeToLinearHeading(new Vector2d(55,-12), Math.toRadians(270))
+        Action tab5 = drive.actionBuilder(new Pose2d(14,55,Math.toRadians(90)))
+                .strafeToLinearHeading(new Vector2d(55,12), Math.toRadians(270))
 
                 .build();
-        Action tab6 = drive.actionBuilder(new Pose2d(55,-12,Math.toRadians(270)))
+        Action tab6 = drive.actionBuilder(new Pose2d(55,12,Math.toRadians(90)))
                 //.waitSeconds(5)
-                .strafeTo(new Vector2d(50,-5), new TranslationalVelConstraint(100.0))
+                .strafeTo(new Vector2d(50,5), new TranslationalVelConstraint(100.0))
 
-                .strafeTo(new Vector2d(37,-50), new TranslationalVelConstraint(100.0))
+                .strafeTo(new Vector2d(37,50), new TranslationalVelConstraint(100.0))
                 .build();
-        Action tab7 = drive.actionBuilder(new Pose2d(35,-50,Math.toRadians(270)))
-                .strafeTo(new Vector2d(-13,-13))
+        Action tab7 = drive.actionBuilder(new Pose2d(35,50,Math.toRadians(270)))
+                .strafeTo(new Vector2d(-13,13))
                 .build();
         Action tab8 = drive.actionBuilder(new Pose2d(-13,-13,Math.toRadians(270)))
                 .strafeToLinearHeading(new Vector2d(50,-20), Math.toRadians(270))
@@ -461,7 +460,7 @@ public class Auto2025BlueFar extends LinearOpMode {
                             launcher.revMotor(),
                             turret.turretGo(),
                             new SequentialAction(
-                                    turret.changeAngle(69),
+                                    turret.changeAngle(-69),
                                     launcher.fireBallPre(), // +3 (preloaded)
                                     new ParallelAction(//1st spike,
                                             intake.intakeRun(),
