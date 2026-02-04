@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Toros.Autonomous.RR;
+package org.firstinspires.ftc.teamcode.Toros.Autonomous;
 
 import androidx.annotation.NonNull;
 
@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.InstantFunction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
