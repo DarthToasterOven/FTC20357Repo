@@ -5,6 +5,7 @@ import android.util.Size;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -12,6 +13,7 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.RR.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.IntakeV2;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.Turret;
@@ -41,7 +43,11 @@ public class MainDrive extends LinearOpMode {
     private double bearing;
     double k = 0;
 
-
+    public static double distance = 0;
+    MecanumDrive mecanumDrive;
+    public static double getDistance(){
+        return distance;
+    }
     @Override
     public void runOpMode() throws InterruptedException {
         //Constructs the systems and makes them objects allowing to use a method to run the system and allows for other methods to be used
@@ -55,7 +61,7 @@ public class MainDrive extends LinearOpMode {
         intake = new IntakeV2(hardwareMap, gamepad1, gamepad2, aprilTag);
         turret = new Turret(hardwareMap,gamepad2);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-
+        mecanumDrive = new MecanumDrive(hardwareMap,new Pose2d(0,0,Math.toRadians(0)));
 
         waitForStart();
         // runs all of the systems
@@ -80,11 +86,12 @@ public class MainDrive extends LinearOpMode {
             intake.runLauncher();
             intake.runIntake();
             intake.transfer();
-
+            distance = Math.sqrt(Math.pow((mecanumDrive.localizer.getPose().position.x - (-64)),2) + Math.pow((mecanumDrive.localizer.getPose().position.y - 60),2));
 
 
         }
     }
+
 
     public void initAprilTag() {
 
@@ -291,6 +298,11 @@ public class MainDrive extends LinearOpMode {
     return motif;
     }
 
+
+
+    //notes
+    // make the code set allaince upon looking at the corresponding apriltag
+    //
 
 
 

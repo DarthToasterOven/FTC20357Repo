@@ -43,11 +43,12 @@ import com.acmerobotics.roadrunner.ftc.RawEncoder;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
+import org.firstinspires.ftc.teamcode.RR.Drawing;
+import org.firstinspires.ftc.teamcode.RR.Localizer;
 import org.firstinspires.ftc.teamcode.RR.messages.DriveCommandMessage;
 import org.firstinspires.ftc.teamcode.RR.messages.PoseMessage;
 import org.firstinspires.ftc.teamcode.RR.messages.TankCommandMessage;
@@ -253,7 +254,6 @@ public final class TankDrive {
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
         lazyImu = new LazyHardwareMapImu(hardwareMap, "imu", new RevHubOrientationOnRobot(
                 PARAMS.logoFacingDirection, PARAMS.usbFacingDirection));
-
 
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
 

@@ -1,8 +1,12 @@
 package org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.controller.wpilibcontroller.SimpleMotorFeedforward;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.MathFunctions;
+import com.pedropathing.math.Vector;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -11,6 +15,8 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.RR.MecanumDrive;
+import org.firstinspires.ftc.teamcode.Toros.Drive.MainDrive;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import com.arcrobotics.ftclib.util.LUT;
@@ -58,6 +64,7 @@ public class IntakeV2 {
         c2 = hardwareMap.get(ColorSensor.class,"c2");
         c3 = hardwareMap.get(ColorSensor.class,"c3");
         this.aprilTag = aprilTag;
+
 
 
     }
@@ -273,6 +280,30 @@ public class IntakeV2 {
         ticksPerSecond *= k;
         targetVel = (int) ticksPerSecond;
         return (int) ticksPerSecond;
+    }
+
+    //reminder I need to find some of these values below
+    public static double getFlywheelVel(double velocity){
+        return MathFunctions.clamp(94.501*velocity/ 12 - 187.96,1200, 1800);
+    }
+    public static double getHoodTicksFromDegrees(double degrees){
+        return 0.0226 * degrees - 0.7443;
+    }
+
+    //Measurements in meters besides the Goal position
+    public static Vector2d GOAL = new Vector2d(-64,60);
+    public static double SCORE_HEIGHT = 0.6604;
+    public static double SCORE_ANGLE = Math.toDegrees(-30);
+    public static double PASS_THROUGH_POINT_RADIUS = 0.127;
+
+    private Vector calculateShotVector(double heading){
+        double g = 10;
+        double x = MainDrive.getDistance();
+        double y = SCORE_HEIGHT;
+        double a = SCORE_ANGLE;
+
+        double hoodAngle;
+        return null;
     }
 
 
