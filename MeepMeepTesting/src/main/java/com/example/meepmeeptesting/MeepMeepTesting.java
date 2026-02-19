@@ -50,18 +50,17 @@ public class MeepMeepTesting {
                 .splineToLinearHeading(new Pose2d(-13,-12,Math.toRadians(270)),Math.toRadians(90))
                 .build());
         mySecondBot.runAction(mySecondBot.getDrive().actionBuilder(new Pose2d(-46, 48, Math.toRadians(90)))
-                .strafeToLinearHeading(new Vector2d(-13,13),Math.toRadians(90))
-                .waitSeconds(2.5)
-                .strafeToLinearHeading(new Vector2d(-12,28),Math.toRadians(90))
-                .strafeTo(new Vector2d(-12,53))
-                .strafeToLinearHeading(new Vector2d(-12,13), Math.toRadians(90))
-                .waitSeconds(2.5)
-                .strafeToLinearHeading(new Vector2d(12,28),Math.toRadians(90))
-                .strafeTo(new Vector2d(12.25,53))
-                .strafeToLinearHeading(new Vector2d(-12,13), Math.toRadians(90))
-                .waitSeconds(2.5)
-                .strafeToLinearHeading(new Vector2d(36,13),Math.toRadians(90))
-                .strafeTo(new Vector2d(36,53))
+                .strafeToLinearHeading(new Vector2d(-12,12),Math.toRadians(90)) // Preload
+
+                .strafeToLinearHeading(new Vector2d(-12,28),Math.toRadians(90)) // first spike
+                .strafeTo(new Vector2d(-12,53)) // first spike intake
+                .strafeToLinearHeading(new Vector2d(-12,13), Math.toRadians(90)) //launch first spike
+                .setTangent(Math.toRadians(45))
+                .splineToLinearHeading(new Pose2d(12,28,Math.toRadians(90)),Math.toRadians(90))// seconds spike
+                .strafeTo(new Vector2d(12,53))//second spike intake
+                .setTangent(Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(-13,12,Math.toRadians(90)),Math.toRadians(270))
+
                 .build());
         myThirdBot.runAction(myThirdBot.getDrive().actionBuilder(new Pose2d(61.25,-12,Math.toRadians(270)))
                 .setTangent(Math.toRadians(180))
@@ -69,33 +68,27 @@ public class MeepMeepTesting {
                 .strafeTo(new Vector2d(12,-52))
                 .strafeTo(new Vector2d(10,-56))
                 .setTangent(Math.toRadians(90))
-                .splineToConstantHeading(new Vector2d(61.25,-12),Math.toRadians(90))
-                .waitSeconds(1)
-                .setTangent(Math.toRadians(0))
-                .strafeTo(new Vector2d(62,-60))
-                .strafeTo(new Vector2d(62,-12))
-                .setTangent(Math.toRadians(270))
-                .splineToLinearHeading(new Pose2d(49,-62,Math.toRadians(180)), Math.toRadians(180))
-                .strafeTo(new Vector2d(13,-62))
-                .strafeTo(new Vector2d(49,-62))
-                .splineToConstantHeading(new Vector2d(61.25,-12),Math.toRadians(0))
+                .splineToConstantHeading(new Vector2d(61.25,-12),Math.toRadians(350))
+                .setTangent(Math.toRadians(180))
+                .splineToConstantHeading(new Vector2d(35,-57),Math.toRadians(270))
+                .setTangent(Math.toRadians(90))
+                .splineToConstantHeading(new Vector2d(61.25,-12),Math.toRadians(350))
+
                         .build());
         myFourthBot.runAction(myFourthBot.getDrive().actionBuilder(new Pose2d(61.25,12,Math.toRadians(90)))
-                        .setTangent(Math.toRadians(180))
-                        .splineToConstantHeading(new Vector2d(12,38),Math.toRadians(90))
-                        .strafeTo(new Vector2d(12,52))
-                        .strafeTo(new Vector2d(10,56))
-                        .setTangent(Math.toRadians(270))
-                        .splineToConstantHeading(new Vector2d(61.25,12),Math.toRadians(0))
-                        .waitSeconds(1)
-                        .setTangent(Math.toRadians(0))
-                        .strafeTo(new Vector2d(62,60))
-                        .strafeTo(new Vector2d(62,12))
-                        .setTangent(Math.toRadians(90))
-                        .splineToLinearHeading(new Pose2d(49,62,Math.toRadians(180)), Math.toRadians(180))
-                        .strafeTo(new Vector2d(13,62))
-                        .strafeTo(new Vector2d(49,62))
-                        .splineToConstantHeading(new Vector2d(61.25,12),Math.toRadians(0))
+
+                .setTangent(Math.toRadians(180))
+                .splineToConstantHeading(new Vector2d(12,38),Math.toRadians(90))
+                .strafeTo(new Vector2d(12,52))
+                .strafeTo(new Vector2d(10,56))
+                .setTangent(Math.toRadians(270))
+                .splineToConstantHeading(new Vector2d(61.25,12),Math.toRadians(10))
+                .setTangent(Math.toRadians(180))
+                .splineToConstantHeading(new Vector2d(35,57),Math.toRadians(90))
+                .setTangent(Math.toRadians(270))
+                .splineToConstantHeading(new Vector2d(61.25,12),Math.toRadians(10))
+
+
 
 
                 .build());
@@ -105,9 +98,9 @@ public class MeepMeepTesting {
                 .setBackgroundAlpha(0.95f)
                 // Add both of our declared bot entities
                 .addEntity(myFirstBot)
-//                .addEntity(mySecondBot)
-               //.addEntity(myThirdBot)
-                //.addEntity(myFourthBot)
+                .addEntity(mySecondBot)
+               .addEntity(myThirdBot)
+                .addEntity(myFourthBot)
                 .start();
     }
 }

@@ -44,9 +44,19 @@ public class MainDrive extends LinearOpMode {
     double k = 0;
 
     public static double distance = 0;
+    public static double distanceX = 0;
+    public static double distanceY = 0;
     MecanumDrive mecanumDrive;
     public static double getDistance(){
         return distance;
+    }
+
+    public static double getDistanceX(){
+        return distanceX;
+    }
+
+    public static double getDistanceY(){
+        return distanceY;
     }
     @Override
     public void runOpMode() throws InterruptedException {
@@ -61,7 +71,7 @@ public class MainDrive extends LinearOpMode {
         intake = new IntakeV2(hardwareMap, gamepad1, gamepad2, aprilTag);
         turret = new Turret(hardwareMap,gamepad2);
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        mecanumDrive = new MecanumDrive(hardwareMap,new Pose2d(0,0,Math.toRadians(0)));
+        mecanumDrive = new MecanumDrive(hardwareMap,new Pose2d(-48,-50,Math.toRadians(45)));
 
         waitForStart();
         // runs all of the systems
@@ -86,6 +96,8 @@ public class MainDrive extends LinearOpMode {
             intake.runLauncher();
             intake.runIntake();
             intake.transfer();
+            distanceX = mecanumDrive.localizer.getPose().position.x -(-64);
+            distanceY = mecanumDrive.localizer.getPose().position.y -(-64);
             distance = Math.sqrt(Math.pow((mecanumDrive.localizer.getPose().position.x - (-64)),2) + Math.pow((mecanumDrive.localizer.getPose().position.y - 60),2));
 
 

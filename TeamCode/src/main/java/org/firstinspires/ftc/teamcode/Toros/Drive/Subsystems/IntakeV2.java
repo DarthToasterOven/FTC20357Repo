@@ -1,12 +1,13 @@
 package org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.controller.wpilibcontroller.SimpleMotorFeedforward;
-import com.pedropathing.geometry.Pose;
-import com.pedropathing.math.MathFunctions;
-import com.pedropathing.math.Vector;
+
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -15,11 +16,16 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RR.MecanumDrive;
+import org.firstinspires.ftc.teamcode.RR.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.Toros.Drive.MainDrive;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.opencv.core.Mat;
+
 import com.arcrobotics.ftclib.util.LUT;
+import com.sun.tools.javac.Main;
 
 @Config
 public class IntakeV2 {
@@ -45,7 +51,17 @@ public class IntakeV2 {
 
     public double ticksPerSecond = 1500;
 
+    public static class Params {
+        public double parYTicks = 0.0; // y position of the parallel encoder (in tick units)
+        public double perpXTicks = 0.0; // x position of the perpendicular encoder (in tick units)
+    }
 
+    public static PinpointLocalizer.Params PARAMS = new PinpointLocalizer.Params();
+
+    public  GoBildaPinpointDriver driver;
+    public  GoBildaPinpointDriver.EncoderDirection initialParDirection, initialPerpDirection;
+
+   public static double vel;
 
     public IntakeV2(HardwareMap hardwareMap, Gamepad gamepad, Gamepad gamepadA, AprilTagProcessor aprilTag) {
         gamepad1 = gamepad;
@@ -65,12 +81,29 @@ public class IntakeV2 {
         c3 = hardwareMap.get(ColorSensor.class,"c3");
         this.aprilTag = aprilTag;
 
+        driver = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+
+        double inPerTick = 0.02285196738095238 ;
+        double mmPerTick = inPerTick * 25.4;
+
+        driver.setEncoderResolution(1 / mmPerTick, DistanceUnit.MM);
+        driver.setOffsets(PARAMS.parYTicks,  PARAMS.perpXTicks, DistanceUnit.MM);
+
+        initialParDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
+        initialPerpDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
+
+        driver.setEncoderDirections(initialParDirection, initialPerpDirection);
+
+        driver.resetPosAndIMU();
+
+
 
 
     }
 
     public void runLauncher() {
-        //targetVel = -1* calcLaunch(0);
+        vel = Math.sqrt(Math.pow(driver.getVelX(DistanceUnit.INCH),2)+ Math.pow(driver.getVelY(DistanceUnit.INCH),2));
+                //targetVel = -1* calcLaunch(0);
         //double ff = Math.cos(Math.toRadians(targetVel /ticks_in_degrees)) * f1;
             if (gamepad2.left_bumper)
             {
@@ -183,6 +216,16 @@ public class IntakeV2 {
     }
 
 
+    public static double k = -2.6;
+
+    public double lastDistance = 1;
+    public static double h = 0.69;
+    public static double flywheelRadius = 0.048;
+    public static double minAngle = 40;
+    public static double maxAngle = 50;
+    public static double minServo = 0.0;
+    public static double maxServo = 1.0;
+
 
     LUT<Double, Double> speeds = new LUT<Double, Double>()
     {{
@@ -191,6 +234,34 @@ public class IntakeV2 {
         add(1.4, 1180.0);
         add(3.1, 1450.0);
     }};
+
+    public int calcShot(double robotHeading){
+        double g = 32.174 * 12;
+        double x = MainDrive.getDistance() - 5; //distance - shoot past point radius
+        double y = 52;
+        double a = Math.toRadians(-30);
+
+        double hoodAngle = Math.atan(2*y/x- Math.tan(a));
+        int flywheelSpeed = (int) Math.sqrt(g * Math.pow(x,2) / (2* Math.pow(Math.cos(hoodAngle),2) * (x * Math.tan(hoodAngle))));
+        double robotVelocity = getVel();
+
+        double coordinateTheta =  Math.atan(driver.getVelX(DistanceUnit.INCH)/driver.getVelY(DistanceUnit.INCH)) - Math.atan(MainDrive.getDistanceX()/ MainDrive.getDistanceY());
+
+        double parallel = -Math.cos(coordinateTheta) * Math.abs(robotVelocity);
+        double perpendicular = Math.sin(coordinateTheta) * Math.abs(robotVelocity);
+
+        double vz = flywheelSpeed * Math.sin(hoodAngle);
+        double time = x / (flywheelSpeed * Math.cos(hoodAngle));
+        double ivr = x/time + parallel;
+        double nvr = Math.sqrt(Math.pow(ivr,2) * Math.pow(perpendicular,2));
+        double ndr = nvr * time;
+
+        hoodAngle = Math.atan(vz/nvr);
+
+        flywheelSpeed = (int) Math.sqrt(g*Math.pow(ndr,2)/ (2*Math.pow(Math.cos(hoodAngle),2) * (ndr * Math.tan(hoodAngle)-y)));
+
+        return flywheelSpeed;
+    }
 
     public double calcLaunch1() {
         double distance = lastDistance;
@@ -232,15 +303,7 @@ public class IntakeV2 {
 
 
 
-    public static double k = -2.6;
 
-    public double lastDistance = 1;
-    public static double h = 0.69;
-    public static double flywheelRadius = 0.048;
-    public static double minAngle = 40;
-    public static double maxAngle = 50;
-    public static double minServo = 0.0;
-    public static double maxServo = 1.0;
     public double calcLaunch2() { // to make air sort: add parameter?? if slow then: hood angle = high, else: calc hood angle
 
         //vars
@@ -281,31 +344,9 @@ public class IntakeV2 {
         targetVel = (int) ticksPerSecond;
         return (int) ticksPerSecond;
     }
-
-    //reminder I need to find some of these values below
-    public static double getFlywheelVel(double velocity){
-        return MathFunctions.clamp(94.501*velocity/ 12 - 187.96,1200, 1800);
-    }
-    public static double getHoodTicksFromDegrees(double degrees){
-        return 0.0226 * degrees - 0.7443;
-    }
-
-    //Measurements in meters besides the Goal position
-    public static Vector2d GOAL = new Vector2d(-64,60);
-    public static double SCORE_HEIGHT = 0.6604;
-    public static double SCORE_ANGLE = Math.toDegrees(-30);
-    public static double PASS_THROUGH_POINT_RADIUS = 0.127;
-
-    private Vector calculateShotVector(double heading){
-        double g = 10;
-        double x = MainDrive.getDistance();
-        double y = SCORE_HEIGHT;
-        double a = SCORE_ANGLE;
-
-        double hoodAngle;
-        return null;
-    }
-
+public static double getVel(){
+    return vel;
+}
 
 
 }
