@@ -98,7 +98,7 @@ public class MainDrive extends LinearOpMode {
             intake.transfer();
             distanceX = mecanumDrive.localizer.getPose().position.x -(-64);
             distanceY = mecanumDrive.localizer.getPose().position.y -(-64);
-            distance = Math.sqrt(Math.pow((mecanumDrive.localizer.getPose().position.x - (-64)),2) + Math.pow((mecanumDrive.localizer.getPose().position.y - 60),2));
+            distance = Math.sqrt(Math.pow((distanceX - (-64)),2) + Math.pow((distanceY - (-64)),2));
 
 
         }

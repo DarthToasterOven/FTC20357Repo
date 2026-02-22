@@ -241,11 +241,11 @@ public class IntakeV2 {
         double y = 52;
         double a = Math.toRadians(-30);
 
-        double hoodAngle = Math.atan(2*y/x- Math.tan(a));
-        int flywheelSpeed = (int) Math.sqrt(g * Math.pow(x,2) / (2* Math.pow(Math.cos(hoodAngle),2) * (x * Math.tan(hoodAngle))));
+        double hoodAngle = Math.atan(2*y/x- Math.tan(a)); ///clamp / round
+        int flywheelSpeed = (int) Math.sqrt(g * Math.pow(x,2) / (2* Math.pow(Math.cos(hoodAngle),2) * (x * Math.tan(hoodAngle)-y)));
         double robotVelocity = getVel();
 
-        double coordinateTheta =  Math.atan(driver.getVelX(DistanceUnit.INCH)/driver.getVelY(DistanceUnit.INCH)) - Math.atan(MainDrive.getDistanceX()/ MainDrive.getDistanceY());
+        double coordinateTheta =  Math.atan(driver.getVelY(DistanceUnit.INCH)/driver.getVelX(DistanceUnit.INCH)) - Math.atan(MainDrive.getDistanceY()/ MainDrive.getDistanceX());
 
         double parallel = -Math.cos(coordinateTheta) * Math.abs(robotVelocity);
         double perpendicular = Math.sin(coordinateTheta) * Math.abs(robotVelocity);

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems;
 
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.controller.wpilibcontroller.SimpleMotorFeedforward;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -11,6 +12,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.RR.PinpointLocalizer;
 
 public class Turret {
     public static double p1 = 0.00625 , i1 = 0.00, d1 = 0.00055;
@@ -28,6 +31,19 @@ public class Turret {
     public double botHeading;
     public double k = 0;
     public boolean gyro = true;
+    public double ticksPerSecond = 1500;
+
+    public static class Params {
+        public double parYTicks = 0.0; // y position of the parallel encoder (in tick units)
+        public double perpXTicks = 0.0; // x position of the perpendicular encoder (in tick units)
+    }
+
+    public static PinpointLocalizer.Params PARAMS = new PinpointLocalizer.Params();
+
+    public GoBildaPinpointDriver driver;
+    public  GoBildaPinpointDriver.EncoderDirection initialParDirection, initialPerpDirection;
+
+    double currentAngle;
     public Turret(HardwareMap hardwareMap, Gamepad gamepad) {
         turretMotor = hardwareMap.get(DcMotorEx.class, "turret");
         turretMotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -38,24 +54,30 @@ public class Turret {
         gamepad2 = gamepad;
         controller = new PIDController(p1, i1, d1);
         controller.setPID(p1, i1, d1);
-        imu = hardwareMap.get(IMU.class, "imu");
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
-                RevHubOrientationOnRobot.UsbFacingDirection.UP
-        ));
+        driver = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
 
-        imu.initialize(parameters);
-        imu.resetYaw();
+        double inPerTick = 0.02285196738095238 ;
+        double mmPerTick = inPerTick * 25.4;
+
+        driver.setEncoderResolution(1 / mmPerTick, DistanceUnit.MM);
+        driver.setOffsets(PARAMS.parYTicks,  PARAMS.perpXTicks, DistanceUnit.MM);
+
+        initialParDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
+        initialPerpDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
+
+        driver.setEncoderDirections(initialParDirection, initialPerpDirection);
+
+        driver.resetPosAndIMU();
     }
 
     public void runTurretGyro() {
 
 
 
-        botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        botHeading = driver.getHeading(AngleUnit.DEGREES);
 
         //Calculates the turret's angle and converts the targetAngle to the motor ticks
-        double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360.0 * gearRatio + botHeading;
+        currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360.0 * gearRatio + botHeading;
 
 
         targetPos = (384.5 * (targetAngle + botHeading)) / 360.0 * (5.0 / 2.0);
@@ -74,7 +96,7 @@ public class Turret {
 
 
         if(Math.abs(targetAngle) > 150){
-            targetAngle = targetAngle - Math.copySign(10, targetAngle);
+            targetAngle = -targetAngle + Math.copySign(10, targetAngle);
         }
 
 
@@ -98,7 +120,7 @@ public class Turret {
     public void runTurretNoGyro(double k) {
 
         //Calculates the turret's angle and converts the targetAngle to the motor ticks
-        double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360.0 * gearRatio + k;
+        currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360.0 * gearRatio + k;
 
 
         targetPos = (384.5 * (targetAngle + (int)k)) / 360.0 * (5.0 / 2.0);
@@ -144,7 +166,7 @@ public class Turret {
     }
 
     public double getTurretAngle() {
-        return (turretMotor.getCurrentPosition() / 384.5) * 360 * gearRatio + botHeading;
+        return currentAngle;
     }
 
 
