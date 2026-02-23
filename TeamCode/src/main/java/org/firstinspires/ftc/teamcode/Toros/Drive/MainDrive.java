@@ -5,15 +5,23 @@ import android.util.Size;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.LED;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.RR.Drawing;
 import org.firstinspires.ftc.teamcode.RR.MecanumDrive;
+import org.firstinspires.ftc.teamcode.RR.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.IntakeV2;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.Turret;
@@ -38,15 +46,16 @@ public class MainDrive extends LinearOpMode {
     Turret turret;
     public ColorSensor c3;
     List<LynxModule> allHubs;
+    Servo led;
     private boolean lockedOn = false;
     private boolean mode = false;
-    private double bearing;
     double k = 0;
 
     public static double distance = 0;
     public static double distanceX = 0;
     public static double distanceY = 0;
     MecanumDrive mecanumDrive;
+
     public static double getDistance(){
         return distance;
     }
@@ -60,28 +69,33 @@ public class MainDrive extends LinearOpMode {
     }
     @Override
     public void runOpMode() throws InterruptedException {
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+
+
         //Constructs the systems and makes them objects allowing to use a method to run the system and allows for other methods to be used
         allHubs = hardwareMap.getAll(LynxModule.class);
         for(LynxModule hub: allHubs){
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
         initAprilTag();
-        telemetry.setMsTransmissionInterval(500);
         drivetrain = new DriveTrain(hardwareMap,gamepad1);
+        led = hardwareMap.get(Servo.class, "LED");
         intake = new IntakeV2(hardwareMap, gamepad1, gamepad2, aprilTag);
         turret = new Turret(hardwareMap,gamepad2);
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        mecanumDrive = new MecanumDrive(hardwareMap,new Pose2d(-48,-50,Math.toRadians(45)));
+        mecanumDrive = new MecanumDrive(hardwareMap,new Pose2d(0,0,Math.toRadians(270)));
+
+
+
 
         waitForStart();
         // runs all of the systems
         while (opModeIsActive()) {
-
-
+            led.setPosition(1);
             initTelemetry();
             telemetryAprilTag();
             getMotif();
             drivetrain.driveRobotCentric();
+
 
             if(lockedOn){
 
@@ -93,12 +107,23 @@ public class MainDrive extends LinearOpMode {
 
             lockOn();
 
+
             intake.runLauncher();
             intake.runIntake();
             intake.transfer();
-            distanceX = mecanumDrive.localizer.getPose().position.x -(-64);
-            distanceY = mecanumDrive.localizer.getPose().position.y -(-64);
-            distance = Math.sqrt(Math.pow((distanceX - (-64)),2) + Math.pow((distanceY - (-64)),2));
+
+            mecanumDrive.updatePoseEstimate();
+
+            Pose2d pose = mecanumDrive.localizer.getPose();
+
+            TelemetryPacket packet = new TelemetryPacket();
+            packet.fieldOverlay().setStroke("#3F51B5");
+            Drawing.drawRobot(packet.fieldOverlay(), pose);
+            FtcDashboard.getInstance().sendTelemetryPacket(packet);
+
+            distanceX = mecanumDrive.localizer.getPose().position.x -(-13);
+            distanceY = mecanumDrive.localizer.getPose().position.y -(-13);
+            distance = Math.sqrt(Math.pow(distanceX,2)+Math.pow(distanceY,2));
 
 
         }
@@ -183,8 +208,10 @@ public class MainDrive extends LinearOpMode {
         telemetry.addData("Angle", turret.getTurretAngle());
         telemetry.addData("heading", drivetrain.getHeading());
         telemetry.addData("targetVel", intake.getTargetVel());
-        telemetry.addData("Bearing", bearing);
         telemetry.addData("Target Angle", turret.targetAngle);
+        telemetry.addData("Comp", intake.calcShot(drivetrain.getHeading())*7.25 * 0.75);
+        telemetry.addData("Pose", mecanumDrive.localizer.getPose());
+        telemetry.addData("Distance", distance);
 
 
         telemetry.update();
@@ -192,11 +219,11 @@ public class MainDrive extends LinearOpMode {
     private void lockOn(){
 
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-        if (gamepad2.yWasPressed()) {
+        if (gamepad2.yWasPressed() && !lockedOn) {
             lockedOn = true;
             k = drivetrain.getHeading();
 
-        } else if (gamepad2.bWasPressed()) {
+        } else if (gamepad2.bWasPressed() && lockedOn) {
             lockedOn = false;
         }
         for(AprilTagDetection detection: currentDetections) {
@@ -225,7 +252,7 @@ public class MainDrive extends LinearOpMode {
             if (detection.metadata != null && lockedOn && (detection.id == 20 || detection.id == 24)) {
 
 
-                bearing = detection.ftcPose.bearing; // angle to target in degrees
+                double error = detection.ftcPose.bearing; // angle to target in degrees
 
 //                if(bearing < -4){
 //                    turret.setAngle(turret.getTurretAngle() - 1);
@@ -236,35 +263,48 @@ public class MainDrive extends LinearOpMode {
 //                }
 
 
-                if(bearing > 20){
-                    turret.setAngle(turret.getTurretAngle() - 15);
+
+
+                if(error > 5){
+                    turret.setAngle(turret.getTurretAngle() - error*0.5);
                 }
-                else if(bearing > 10){
-                    turret.setAngle(turret.getTurretAngle() - 6);
+                if(error < -5){
+                    turret.setAngle(turret.getTurretAngle() + error*-0.5);
                 }
-                else if (bearing > 5){
-                    turret.setAngle(turret.getTurretAngle() - 3);
-                }
-                else if (bearing > 2){
-                    turret.setAngle(turret.getTurretAngle() - 1);
+                if(Math.abs(error) <= 2){
+                    turret.setAngle(turret.getTurretAngle()*1.01);
                 }
 
-                if(bearing < -20){
-                    turret.setAngle(turret.getTurretAngle() + 15);
-                }
-                else if(bearing < -10){
-                    turret.setAngle(turret.getTurretAngle() + 6);
-                }
-                else if(bearing < -5){
-                    turret.setAngle(turret.getTurretAngle() + 3);
-                }
-                else if (bearing < -2){
-                    turret.setAngle(turret.getTurretAngle() + 1);
-                }
 
-                if(Math.abs(bearing) < 1.5){
-                    turret.setAngle(turret.getTurretAngle());
-                }
+//                if(bearing > 20){
+//                    turret.setAngle(turret.getTurretAngle() - 15);
+//                }
+//                else if(bearing > 10){
+//                    turret.setAngle(turret.getTurretAngle() - 6);
+//                }
+//                else if (bearing > 5){
+//                    turret.setAngle(turret.getTurretAngle() - 3);
+//                }
+//                else if (bearing > 2){
+//                    turret.setAngle(turret.getTurretAngle() - 1);
+//                }x`
+//
+//                if(bearing < -20){
+//                    turret.setAngle(turret.getTurretAngle() + 15);
+//                }
+//                else if(bearing < -10){
+//                    turret.setAngle(turret.getTurretAngle() + 6);
+//                }
+//                else if(bearing < -5){
+//                    turret.setAngle(turret.getTurretAngle() + 3);
+//                }
+//                else if (bearing < -2){
+//                    turret.setAngle(turret.getTurretAngle() + 1);
+//                }
+//
+//                if(Math.abs(bearing) < 1.5){
+//                    turret.setAngle(turret.getTurretAngle());
+//                }
 
             }
         }

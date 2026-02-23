@@ -142,8 +142,8 @@ public class IntakeV2 {
 
             if (gamepad2.right_trigger > 0.1) {
                 if (Math.abs(launch.getVelocity() - targetVel) <= threshold) { //threshold velocity
-                    trans.setPower(0.8);
-                    intakeMotor.setPower(-0.5);
+                    trans.setPower(1);
+                    intakeMotor.setPower(-1);
                 }
                 else {
                     trans.setPower(0);
@@ -164,12 +164,12 @@ public class IntakeV2 {
     public void runIntake() {
         //Moves ball into robot
         if (gamepad1.right_trigger > 0.25) {
-            intakeMotor.setPower(-gamepad1.right_trigger * 0.5);
+            intakeMotor.setPower(-gamepad1.right_trigger);
         }
 
         //Moves ball out of robot
         if (gamepad1.left_trigger > 0.25) {
-            intakeMotor.setPower(gamepad1.left_trigger * 0.5);
+            intakeMotor.setPower(gamepad1.left_trigger);
         }
         if (gamepad1.left_trigger < 0.25 && gamepad1.right_trigger < 0.25 && gamepad2.right_trigger <0.25) {// turns off the motor if both triggers are not pressed
             intakeMotor.setPower(0);
@@ -193,9 +193,7 @@ public class IntakeV2 {
         if (gamepad1.right_bumper && c3.blue() > 150){
             trans.setPower(-0.15);
         }
-        if(gamepad1.right_trigger > 0.25 &&  c3.blue() < 150){
-            trans.setPower(0.35);
-        }
+
         else if(gamepad1.right_bumper){
             trans.setPower(0.35);
         }
@@ -242,23 +240,12 @@ public class IntakeV2 {
         double a = Math.toRadians(-30);
 
         double hoodAngle = Math.atan(2*y/x- Math.tan(a)); ///clamp / round
-        int flywheelSpeed = (int) Math.sqrt(g * Math.pow(x,2) / (2* Math.pow(Math.cos(hoodAngle),2) * (x * Math.tan(hoodAngle)-y)));
+        int flywheelSpeed = (int) Math.sqrt(g * x * x / (2* Math.pow(Math.cos(hoodAngle),2) * (x * Math.tan(hoodAngle)-y)));
         double robotVelocity = getVel();
 
         double coordinateTheta =  Math.atan(driver.getVelY(DistanceUnit.INCH)/driver.getVelX(DistanceUnit.INCH)) - Math.atan(MainDrive.getDistanceY()/ MainDrive.getDistanceX());
 
-        double parallel = -Math.cos(coordinateTheta) * Math.abs(robotVelocity);
-        double perpendicular = Math.sin(coordinateTheta) * Math.abs(robotVelocity);
 
-        double vz = flywheelSpeed * Math.sin(hoodAngle);
-        double time = x / (flywheelSpeed * Math.cos(hoodAngle));
-        double ivr = x/time + parallel;
-        double nvr = Math.sqrt(Math.pow(ivr,2) * Math.pow(perpendicular,2));
-        double ndr = nvr * time;
-
-        hoodAngle = Math.atan(vz/nvr);
-
-        flywheelSpeed = (int) Math.sqrt(g*Math.pow(ndr,2)/ (2*Math.pow(Math.cos(hoodAngle),2) * (ndr * Math.tan(hoodAngle)-y)));
 
         return flywheelSpeed;
     }
