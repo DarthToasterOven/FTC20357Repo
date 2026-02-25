@@ -51,17 +51,10 @@ public class IntakeV2 {
 
     public double ticksPerSecond = 1500;
 
-    public static class Params {
-        public double parYTicks = 0.0; // y position of the parallel encoder (in tick units)
-        public double perpXTicks = 0.0; // x position of the perpendicular encoder (in tick units)
-    }
-
-    public static PinpointLocalizer.Params PARAMS = new PinpointLocalizer.Params();
-
-    public  GoBildaPinpointDriver driver;
-    public  GoBildaPinpointDriver.EncoderDirection initialParDirection, initialPerpDirection;
 
    public static double vel;
+
+   Pinpoint pinpoint;
 
     public IntakeV2(HardwareMap hardwareMap, Gamepad gamepad, Gamepad gamepadA, AprilTagProcessor aprilTag) {
         gamepad1 = gamepad;
@@ -69,11 +62,12 @@ public class IntakeV2 {
         intakeMotor = hardwareMap.get(DcMotorEx.class, " intake");
         intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         hood = hardwareMap.get(Servo.class,("hood"));
+        hood.setDirection(Servo.Direction.FORWARD);
         launch = hardwareMap.get(DcMotorEx.class, ("launch"));
         launch.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         launch.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         trans = hardwareMap.get(DcMotorEx.class, ("trans"));
-        trans.setDirection(DcMotorSimple.Direction.REVERSE);
+        trans.setDirection(DcMotorSimple.Direction.FORWARD);
         controller = new PIDController(p1, i1, d1);
         controller.setPID(p1, i1, d1);
         c1 = hardwareMap.get(ColorSensor.class,"c1");
@@ -81,28 +75,15 @@ public class IntakeV2 {
         c3 = hardwareMap.get(ColorSensor.class,"c3");
         this.aprilTag = aprilTag;
 
-        driver = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
 
-        double inPerTick = 0.02285196738095238 ;
-        double mmPerTick = inPerTick * 25.4;
-
-        driver.setEncoderResolution(1 / mmPerTick, DistanceUnit.MM);
-        driver.setOffsets(PARAMS.parYTicks,  PARAMS.perpXTicks, DistanceUnit.MM);
-
-        initialParDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
-        initialPerpDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
-
-        driver.setEncoderDirections(initialParDirection, initialPerpDirection);
-
-        driver.resetPosAndIMU();
-
-
-
-
+        pinpoint = new Pinpoint(hardwareMap);
     }
+    double hoodAngle = 0;
+    public static double heading;
 
     public void runLauncher() {
-        vel = Math.sqrt(Math.pow(driver.getVelX(DistanceUnit.INCH),2)+ Math.pow(driver.getVelY(DistanceUnit.INCH),2));
+        vel = Math.sqrt(Math.pow(pinpoint.getVelx(),2)+ Math.pow(pinpoint.getVelY(),2));
+        heading = pinpoint.getHeading();
                 //targetVel = -1* calcLaunch(0);
         //double ff = Math.cos(Math.toRadians(targetVel /ticks_in_degrees)) * f1;
             if (gamepad2.left_bumper)
@@ -187,6 +168,10 @@ public class IntakeV2 {
         }
 
 
+        setHood(hoodAngle);
+
+
+
         }
 
     public void transfer(){
@@ -233,21 +218,43 @@ public class IntakeV2 {
         add(3.1, 1450.0);
     }};
 
-    public int calcShot(double robotHeading){
-        double g = 32.174 * 12;
-        double x = MainDrive.getDistance() - 5; //distance - shoot past point radius
-        double y = 52;
-        double a = Math.toRadians(-30);
 
-        double hoodAngle = Math.atan(2*y/x- Math.tan(a)); ///clamp / round
+
+
+    public double calcShot(double robotHeading){
+        double g = 32.174 * 12;
+        double x =  MainDrive.getDistance(); //distance - shoot past point radius
+        double y = 26;
+        double a = Math.toRadians(-45);
+
+        hoodAngle = Math.toDegrees(Math.atan(2 * y/x - Math.tan(a))); ///clamp / round
         int flywheelSpeed = (int) Math.sqrt(g * x * x / (2* Math.pow(Math.cos(hoodAngle),2) * (x * Math.tan(hoodAngle)-y)));
+
+
+
         double robotVelocity = getVel();
 
-        double coordinateTheta =  Math.atan(driver.getVelY(DistanceUnit.INCH)/driver.getVelX(DistanceUnit.INCH)) - Math.atan(MainDrive.getDistanceY()/ MainDrive.getDistanceX());
+        double coordinateTheta =  Math.atan(pinpoint.getVelY()/pinpoint.getVelY()) - Math.atan(MainDrive.getDistanceY()/ MainDrive.getDistanceX());
+
+        double parallel = -Math.cos(coordinateTheta) * Math.abs(robotVelocity);
+        double perpendicular = Math.sin(coordinateTheta) * Math.abs(robotVelocity);
+
+
+        return  hoodAngle;
+    }
+
+    private void setHood(double hoodDegrees){
+        hood.setPosition(hoodDegrees /300*5);
+    }
+    public double getHood(){
+        return hood.getPosition();
+    }
 
 
 
-        return flywheelSpeed;
+
+    public static double getHeading(){
+        return h;
     }
 
     public double calcLaunch1() {
@@ -280,7 +287,7 @@ public class IntakeV2 {
         // Define hood angle
         hoodAngleDeg = Math.max(40, Math.min(60, hoodAngleDeg));
         double hoodValue = minServo + ((60-hoodAngleDeg) / 20) * (maxServo - minServo);
-        hood.setPosition(hoodValue);
+        //hood.setPosition(hoodValue);
 
 
         targetVel = -(speeds.getClosest(distance));

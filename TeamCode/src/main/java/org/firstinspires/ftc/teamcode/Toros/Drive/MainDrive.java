@@ -56,9 +56,7 @@ public class MainDrive extends LinearOpMode {
     public static double distanceY = 0;
     MecanumDrive mecanumDrive;
 
-    public static double getDistance(){
-        return distance;
-    }
+
 
     public static double getDistanceX(){
         return distanceX;
@@ -82,7 +80,7 @@ public class MainDrive extends LinearOpMode {
         led = hardwareMap.get(Servo.class, "LED");
         intake = new IntakeV2(hardwareMap, gamepad1, gamepad2, aprilTag);
         turret = new Turret(hardwareMap,gamepad2);
-        mecanumDrive = new MecanumDrive(hardwareMap,new Pose2d(0,0,Math.toRadians(270)));
+        mecanumDrive = new MecanumDrive(hardwareMap,new Pose2d(-48,-50,Math.toRadians(270)));
 
 
 
@@ -121,8 +119,8 @@ public class MainDrive extends LinearOpMode {
             Drawing.drawRobot(packet.fieldOverlay(), pose);
             FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
-            distanceX = mecanumDrive.localizer.getPose().position.x -(-13);
-            distanceY = mecanumDrive.localizer.getPose().position.y -(-13);
+            distanceX = mecanumDrive.localizer.getPose().position.x -(-60);
+            distanceY = mecanumDrive.localizer.getPose().position.y -(-60);
             distance = Math.sqrt(Math.pow(distanceX,2)+Math.pow(distanceY,2));
 
 
@@ -209,9 +207,10 @@ public class MainDrive extends LinearOpMode {
         telemetry.addData("heading", drivetrain.getHeading());
         telemetry.addData("targetVel", intake.getTargetVel());
         telemetry.addData("Target Angle", turret.targetAngle);
-        telemetry.addData("Comp", intake.calcShot(drivetrain.getHeading())*7.25 * 0.75);
+        telemetry.addData("Comp", intake.calcShot(IntakeV2.getHeading()));
         telemetry.addData("Pose", mecanumDrive.localizer.getPose());
         telemetry.addData("Distance", distance);
+        telemetry.addData("hood", intake.getHood());
 
 
         telemetry.update();
@@ -350,6 +349,9 @@ public class MainDrive extends LinearOpMode {
     return motif;
     }
 
+    public static double getDistance(){
+        return distance = Math.sqrt(Math.pow(distanceX,2)+Math.pow(distanceY,2));
+    }
 
 
     //notes

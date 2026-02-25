@@ -53,6 +53,7 @@ import java.util.List;
 
 @Config
 public final class       MecanumDrive {
+    public double imuHeading;
     public static class Params {
         // IMU orientation
         // TODO: fill in these values based on
@@ -128,6 +129,7 @@ public final class       MecanumDrive {
             private boolean initialized;
         private Pose2d pose;
 
+
         public DriveLocalizer(Pose2d pose) {
             leftFront = new OverflowEncoder(new RawEncoder(MecanumDrive.this.leftFront));
             leftBack = new OverflowEncoder(new RawEncoder(MecanumDrive.this.leftBack));
@@ -141,6 +143,7 @@ public final class       MecanumDrive {
             leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
             leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
             this.pose = pose;
+            imuHeading = 0;
         }
 
         @Override
@@ -152,6 +155,7 @@ public final class       MecanumDrive {
         public Pose2d getPose() {
             return pose;
         }
+
 
         @Override
         public PoseVelocity2d update() {
@@ -253,6 +257,7 @@ public final class       MecanumDrive {
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
 
         localizer = new PinpointLocalizer(hardwareMap, PARAMS.inPerTick, pose);
+
 
         FlightRecorder.write("MECANUM_PARAMS", PARAMS);
     }

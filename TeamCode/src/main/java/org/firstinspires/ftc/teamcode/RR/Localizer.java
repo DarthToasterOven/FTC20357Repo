@@ -17,6 +17,9 @@ public interface Localizer {
      */
     Pose2d getPose();
 
+
+
+
     /**
      * Updates the Localizer's pose estimate.
      * @return the Localizer's current velocity estimate

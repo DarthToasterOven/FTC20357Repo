@@ -101,7 +101,7 @@ public class DriveTrain {
         //These vectors then determine how much we move in a direction
         //In summary based of the angle the powers will be different changing how the robot moves
 
-        botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        botHeading = IntakeV2.getHeading();
         double rotX = x * Math.cos(botHeading) - y * Math.sin(botHeading);
         double rotY = x * Math.sin(botHeading) + y * Math.cos(botHeading);
         rotX = -rotX*1.1;
@@ -160,7 +160,7 @@ public class DriveTrain {
         double sin = Math.sin(theta - Math.PI / 4);
         double cos = Math.cos(theta - Math.PI / 4);
         double max = Math.max(Math.abs(sin), Math.abs(cos));
-        botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+        botHeading = IntakeV2.getHeading();
 
 
         /**
