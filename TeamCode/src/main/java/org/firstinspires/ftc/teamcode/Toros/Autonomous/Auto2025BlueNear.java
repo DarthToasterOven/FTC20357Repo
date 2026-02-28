@@ -89,14 +89,17 @@ public class Auto2025BlueNear extends LinearOpMode {
                     init = true;
                     hood.setPosition(1);
                 }
-                if (launch.getVelocity() <= -1230) { //1585
+                if (launch.getVelocity() <= -1230) {
 
                     trans.setPower(-1);
                     intake.setPower(-1);
+                    targetVel = -1245;
 
                 } else if (launch.getVelocity() >= -1230) {
                     trans.setPower(0);
                     intake.setPower(0);
+                    targetVel = -1275;
+
                 }
                 telemetryPacket.put("time",timer.seconds());
                 if(timer.seconds() < 1.5){
@@ -137,7 +140,8 @@ public class Auto2025BlueNear extends LinearOpMode {
                 if (launch.getVelocity() <= -1230) { //1585
 
                     trans.setPower(-1);
-                    intake.setPower(-0.67);
+                    intake.setPower(-1);
+
 
                 } else if (launch.getVelocity() >= -1230) {
                     trans.setPower(0);
@@ -260,8 +264,8 @@ public class Auto2025BlueNear extends LinearOpMode {
 
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 if (!init) {
-                    trans.setPower(-0.18);
-                    intake.setPower(-0.67);
+                    trans.setPower(-1);
+                    intake.setPower(-1);
                     init = true;
                     timer = new ElapsedTime();
                 }

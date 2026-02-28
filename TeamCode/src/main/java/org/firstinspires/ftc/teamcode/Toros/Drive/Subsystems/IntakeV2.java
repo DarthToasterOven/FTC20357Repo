@@ -227,7 +227,7 @@ public class IntakeV2 {
         double y = 26;
         double a = Math.toRadians(-45);
 
-        hoodAngle = Math.toDegrees(Math.atan(2 * y/x - Math.tan(a))); ///clamp / round
+        hoodAngle = Math.max(30,Math.min(60,Math.atan(2 * (0.78)*x/y- Math.tan(a)))); ///clamp / round
         int flywheelSpeed = (int) Math.sqrt(g * x * x / (2* Math.pow(Math.cos(hoodAngle),2) * (x * Math.tan(hoodAngle)-y)));
 
 
@@ -239,8 +239,16 @@ public class IntakeV2 {
         double parallel = -Math.cos(coordinateTheta) * Math.abs(robotVelocity);
         double perpendicular = Math.sin(coordinateTheta) * Math.abs(robotVelocity);
 
+        double vz = flywheelSpeed * Math.sin(hoodAngle);
+        double time = x /(flywheelSpeed * Math.cos(hoodAngle));
+        double ivr = x /time + parallel;
+        double nvr = Math.sqrt(ivr*ivr + perpendicular * perpendicular);
+        double ndr = nvr * time;
 
-        return  hoodAngle;
+        hoodAngle = Math.max(30,Math.min(60,Math.atan(vz/nvr)));
+        flywheelSpeed = (int) Math.sqrt(g*ndr*ndr / (2*Math.pow(Math.cos(hoodAngle),2) * (ndr * Math.tan(hoodAngle)- y)));
+
+        return  flywheelSpeed;
     }
 
     private void setHood(double hoodDegrees){
