@@ -232,7 +232,7 @@ public class IntakeV2 {
 
         double robotVelocity = getVel();
 
-        double coordinateTheta =  Math.atan(pinpoint.getVelY()/pinpoint.getVelY()) - Math.atan(MainDrive.getDistanceY()/ MainDrive.getDistanceX());
+        double coordinateTheta =  Math.atan(pinpoint.getVelY()/pinpoint.getVelx()) - Math.atan(MainDrive.getDistanceY()/ MainDrive.getDistanceX());
 
         double parallel = -Math.cos(coordinateTheta) * Math.abs(robotVelocity);
         double perpendicular = Math.sin(coordinateTheta) * Math.abs(robotVelocity);
@@ -247,7 +247,7 @@ public class IntakeV2 {
         flywheelSpeed = (int) Math.sqrt(g*ndr*ndr / (2*Math.pow(Math.cos(hoodAngle),2) * (ndr * Math.tan(hoodAngle)- y)));
 
         double turretComp = Math.atan(perpendicular/ivr);
-        double turretAngle = Math.toDegrees(robotHeading - Math.toDegrees(Math.atan(MainDrive.getDistanceY()/ MainDrive.getDistanceX())) + turretComp);
+        double turretAngle = Math.toDegrees(robotHeading - Math.atan(MainDrive.getDistanceY()/ MainDrive.getDistanceX()) + turretComp);
         Turret.setAngle(-turretAngle);
 
         return flywheelSpeed;

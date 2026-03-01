@@ -231,8 +231,11 @@ public class MainDrive extends LinearOpMode {
                 gamepad2.rumble(500);
 
             }
-            if(gamepad2.yWasPressed()){
-                pose = new Pose2d(detection.ftcPose.x,detection.ftcPose.y,IntakeV2.getHeading());
+            if(gamepad2.yWasPressed() && detection.id == 20){
+                pose = new Pose2d(detection.ftcPose.range*Math.sin(turret.getTurretAngle())-(-76),detection.ftcPose.range*Math.cos(turret.getTurretAngle())-(-76),IntakeV2.getHeading());
+            }
+            if(gamepad2.yWasPressed() && detection.id == 24){
+                pose = new Pose2d(detection.ftcPose.range*Math.sin(turret.getTurretAngle())-(-76),detection.ftcPose.range*Math.cos(turret.getTurretAngle())-(76),IntakeV2.getHeading());
             }
         }
 
