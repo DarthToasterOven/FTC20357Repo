@@ -16,12 +16,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RR.PinpointLocalizer;
 
 public class Turret {
-    public static double p1 = 0.00625 , i1 = 0.00, d1 = 0.00055;
-    public static double kS = 0,kV = 0.000125, kA = 0;
+    public static double p1 = 0.0062 , i1 = 0.00, d1 = 0.00055;
+    public static double kS = 0,kV = 0.00012, kA = 0;
 
     private final DcMotorEx turretMotor;
     private final PIDController controller;
-    public double targetAngle = 0;
+    public static double targetAngle = 0;
     public double motorPosition;
     double gearRatio = 2.0 / 5.0;
     private final Gamepad gamepad2;
@@ -95,7 +95,7 @@ public class Turret {
         turretMotor.setPower(power);
 
 
-        if(Math.abs(targetAngle) > 150){
+        if(Math.abs(targetAngle) > 80){
             targetAngle = -targetAngle + Math.copySign(10, targetAngle);
         }
 
@@ -161,7 +161,7 @@ public class Turret {
 
     }
 
-    public void setAngle(double target) {
+    public static void setAngle(double target) {
         targetAngle = (int) target;
     }
 

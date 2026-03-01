@@ -56,7 +56,7 @@ public class MainDrive extends LinearOpMode {
     public static double distanceY = 0;
     MecanumDrive mecanumDrive;
 
-
+    public Pose2d pose;
 
     public static double getDistanceX(){
         return distanceX;
@@ -80,7 +80,8 @@ public class MainDrive extends LinearOpMode {
         led = hardwareMap.get(Servo.class, "LED");
         intake = new IntakeV2(hardwareMap, gamepad1, gamepad2, aprilTag);
         turret = new Turret(hardwareMap,gamepad2);
-        mecanumDrive = new MecanumDrive(hardwareMap,new Pose2d(-48,-50,Math.toRadians(270)));
+        pose = new Pose2d(-48,-50, Math.toRadians(270));
+        mecanumDrive = new MecanumDrive(hardwareMap,pose);
 
 
 
@@ -95,15 +96,10 @@ public class MainDrive extends LinearOpMode {
             drivetrain.driveRobotCentric();
 
 
-            if(lockedOn){
 
-                turret.runTurretNoGyro(k);
-            }
-            else{
-                turret.runTurretGyro();
-            }
+            turret.runTurretNoGyro(k);
 
-            lockOn();
+            reLocalize();
 
 
             intake.runLauncher();
@@ -114,13 +110,14 @@ public class MainDrive extends LinearOpMode {
 
             Pose2d pose = mecanumDrive.localizer.getPose();
 
+
             TelemetryPacket packet = new TelemetryPacket();
             packet.fieldOverlay().setStroke("#3F51B5");
             Drawing.drawRobot(packet.fieldOverlay(), pose);
             FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
-            distanceX = mecanumDrive.localizer.getPose().position.x -(-60);
-            distanceY = mecanumDrive.localizer.getPose().position.y -(-60);
+            distanceX = mecanumDrive.localizer.getPose().position.x -(-70);
+            distanceY = mecanumDrive.localizer.getPose().position.y -(-70);
             distance = Math.sqrt(Math.pow(distanceX,2)+Math.pow(distanceY,2));
 
 
@@ -197,8 +194,13 @@ public class MainDrive extends LinearOpMode {
         if(!mode) {
             telemetry.addData("Mode", mode);
         }
+
+        telemetry.addLine("DriveTrain ");
+        telemetry.addLine("--------------------------------- ");
         telemetry.addData("Toggle",drivetrain.getXToggle());
         telemetry.addData("Toggle",drivetrain.getRToggle());
+        telemetry.addLine("--------------------------------- ");
+        telemetry.addLine("Intake ");
         telemetry.addData("Color sensor red", intake.c3.red());
         telemetry.addData("Color sensor green", intake.c3.green());
         telemetry.addData("Color sensor blue", intake.c3.blue());
@@ -206,14 +208,34 @@ public class MainDrive extends LinearOpMode {
         telemetry.addData("Angle", turret.getTurretAngle());
         telemetry.addData("heading", drivetrain.getHeading());
         telemetry.addData("targetVel", intake.getTargetVel());
+        telemetry.addLine("--------------------------------- ");
+        telemetry.addLine("Misc.");
         telemetry.addData("Target Angle", turret.targetAngle);
         telemetry.addData("Comp", intake.calcShot(IntakeV2.getHeading()));
         telemetry.addData("Pose", mecanumDrive.localizer.getPose());
         telemetry.addData("Distance", distance);
         telemetry.addData("hood", intake.getHood());
+        telemetry.addLine("--------------------------------- ");
 
 
         telemetry.update();
+    }
+
+    private void reLocalize(){
+        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+        for(AprilTagDetection detection: currentDetections) {
+
+            // }else {lockedOn = true;}
+            // Rumble if aimed
+            if (detection.metadata != null && Math.abs(detection.ftcPose.bearing) < 2 && (detection.id == 20 || detection.id == 24)) {
+                gamepad2.rumble(500);
+
+            }
+            if(gamepad2.yWasPressed()){
+                pose = new Pose2d(detection.ftcPose.x,detection.ftcPose.y,IntakeV2.getHeading());
+            }
+        }
+
     }
     private void lockOn(){
 

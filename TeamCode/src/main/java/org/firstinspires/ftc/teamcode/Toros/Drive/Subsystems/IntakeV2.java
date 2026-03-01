@@ -62,7 +62,7 @@ public class IntakeV2 {
         intakeMotor = hardwareMap.get(DcMotorEx.class, " intake");
         intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         hood = hardwareMap.get(Servo.class,("hood"));
-        hood.setDirection(Servo.Direction.FORWARD);
+        hood.setDirection(Servo.Direction.REVERSE);
         launch = hardwareMap.get(DcMotorEx.class, ("launch"));
         launch.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         launch.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -168,7 +168,7 @@ public class IntakeV2 {
         }
 
 
-        setHood(hoodAngle);
+       setHood(hoodAngle);
 
 
 
@@ -220,17 +220,15 @@ public class IntakeV2 {
 
 
 
-
+    public static int j = 0;
     public double calcShot(double robotHeading){
         double g = 32.174 * 12;
-        double x =  MainDrive.getDistance(); //distance - shoot past point radius
+        double x =  MainDrive.getDistance() - 5; //distance - shoot past point radius
         double y = 26;
-        double a = Math.toRadians(-45);
+        double a = Math.toRadians(-30);
 
-        hoodAngle = Math.max(30,Math.min(60,Math.atan(2 * (0.78)*x/y- Math.tan(a)))); ///clamp / round
+        hoodAngle = Math.max(Math.toRadians(40),Math.min(Math.toRadians(60),Math.atan(2 *y/x- Math.tan(a)))); ///clamp / round
         int flywheelSpeed = (int) Math.sqrt(g * x * x / (2* Math.pow(Math.cos(hoodAngle),2) * (x * Math.tan(hoodAngle)-y)));
-
-
 
         double robotVelocity = getVel();
 
@@ -245,18 +243,23 @@ public class IntakeV2 {
         double nvr = Math.sqrt(ivr*ivr + perpendicular * perpendicular);
         double ndr = nvr * time;
 
-        hoodAngle = Math.max(30,Math.min(60,Math.atan(vz/nvr)));
+        hoodAngle = Math.max(Math.toRadians(40),Math.min(Math.toRadians(60),Math.atan(vz/nvr)));
         flywheelSpeed = (int) Math.sqrt(g*ndr*ndr / (2*Math.pow(Math.cos(hoodAngle),2) * (ndr * Math.tan(hoodAngle)- y)));
 
-        return  flywheelSpeed;
+        double turretComp = Math.atan(perpendicular/ivr);
+        double turretAngle = Math.toDegrees(robotHeading - Math.toDegrees(Math.atan(MainDrive.getDistanceY()/ MainDrive.getDistanceX())) + turretComp);
+        Turret.setAngle(-turretAngle);
+
+        return flywheelSpeed;
     }
 
     private void setHood(double hoodDegrees){
-        hood.setPosition(hoodDegrees /300*5);
+        hood.setPosition(Math.min(1,Math.max(0.2,k*Math.toDegrees(hoodDegrees))));
     }
     public double getHood(){
         return hood.getPosition();
     }
+
 
 
 

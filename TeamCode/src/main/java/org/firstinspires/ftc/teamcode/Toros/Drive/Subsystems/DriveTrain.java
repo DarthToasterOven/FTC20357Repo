@@ -18,6 +18,7 @@ public class DriveTrain {
     private boolean Rtoggle, XYtoggle; // Toggles for turning down the speed of the robot
     Gamepad currentGamepad1 = new Gamepad(); //fragment of the toggles. needed just in case
     Gamepad gamepad1; // the gamepad which we intialize when we construct the class in the actual drive program
+    Pinpoint pinpoint;
     public DriveTrain(HardwareMap hardwareMap,Gamepad gamepad){
         FrontLeftMotor = hardwareMap.get(DcMotor.class, "fl");
         BackLeftMotor = hardwareMap.get(DcMotor.class, "bl");
@@ -43,16 +44,12 @@ public class DriveTrain {
         BackRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         //Declares Imu based off of logo direction and USB direction
-        imu = hardwareMap.get(IMU.class, "imu");
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
-                RevHubOrientationOnRobot.UsbFacingDirection.UP));
+        pinpoint = new Pinpoint(hardwareMap);
 
 
 
 
-        imu.initialize(parameters);
-        imu.resetYaw();
+        pinpoint.reset();
 
         //creates our gamepad object in order to use controls
         this.gamepad1 = gamepad;

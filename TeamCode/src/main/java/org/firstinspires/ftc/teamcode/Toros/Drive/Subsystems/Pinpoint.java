@@ -38,6 +38,9 @@ public class Pinpoint{
     public double getHeading(){
         return driver.getHeading(AngleUnit.RADIANS);
     }
+    public void reset(){
+        driver.resetPosAndIMU();
+    }
 
     public double getVelx(){
         return driver.getVelX(DistanceUnit.INCH);

@@ -430,13 +430,11 @@ public class Auto2025BlueNear extends LinearOpMode {
 
 //
 
-                .strafeTo(new Vector2d(-13,-49), new TranslationalVelConstraint(100.0))
-                .strafeTo(new Vector2d(-2,-42), new TranslationalVelConstraint(100.0))
-                .strafeTo(new Vector2d(-2,-55), new TranslationalVelConstraint(100.0))
-
+                .strafeTo(new Vector2d(-13,-28), new TranslationalVelConstraint(100.0))
+                .strafeTo(new Vector2d(-12,-53), new TranslationalVelConstraint(100.0))
 
                 .build();
-        Action tab3 = drive.actionBuilder(new Pose2d(-2,-53,Math.toRadians(270)))
+        Action tab3 = drive.actionBuilder(new Pose2d(-12,-53,Math.toRadians(270)))
                 //.waitSeconds(1.5)
                 .strafeTo(new Vector2d(-13,-13))
 
@@ -444,7 +442,7 @@ public class Auto2025BlueNear extends LinearOpMode {
         Action tab4 = drive.actionBuilder(new Pose2d(-13,-13,Math.toRadians(270)))
                 //.waitSeconds(5)
                 .setTangent(Math.toRadians(315))
-                .splineToLinearHeading(new Pose2d(14,-28,Math.toRadians(270)),Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(12,-28,Math.toRadians(270)),Math.toRadians(270))
                 .strafeTo(new Vector2d(14,-55), new TranslationalVelConstraint(100.0))
 //              .waitSeconds(2.5)
                 .build();
