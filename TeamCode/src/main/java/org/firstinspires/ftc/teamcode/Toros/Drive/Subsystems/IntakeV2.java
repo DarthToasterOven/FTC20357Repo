@@ -82,6 +82,7 @@ public class IntakeV2 {
     public static double heading;
 
     public void runLauncher() {
+        targetVel = calcShot(heading);
         vel = Math.sqrt(Math.pow(pinpoint.getVelx(),2)+ Math.pow(pinpoint.getVelY(),2));
         heading = pinpoint.getHeading();
                 //targetVel = -1* calcLaunch(0);
@@ -168,7 +169,7 @@ public class IntakeV2 {
         }
 
 
-       setHood(hoodAngle);
+       //setHood(hoodAngle);
 
 
 
@@ -220,6 +221,7 @@ public class IntakeV2 {
 
 
 
+    static double turretAngle = 0;
     public static int j = 0;
     public double calcShot(double robotHeading){
         double g = 32.174 * 12;
@@ -247,14 +249,25 @@ public class IntakeV2 {
         flywheelSpeed = (int) Math.sqrt(g*ndr*ndr / (2*Math.pow(Math.cos(hoodAngle),2) * (ndr * Math.tan(hoodAngle)- y)));
 
         double turretComp = Math.atan(perpendicular/ivr);
-        double turretAngle = Math.toDegrees(robotHeading - Math.atan(MainDrive.getDistanceY()/ MainDrive.getDistanceX()) + turretComp);
-        Turret.setAngle(-turretAngle);
+        turretAngle = Math.toDegrees(robotHeading - Math.atan(MainDrive.getDistanceY()/ MainDrive.getDistanceX()) + turretComp);
 
-        return flywheelSpeed;
+        if(Math.abs(turretAngle) > 80){
+            turretAngle = -turretAngle + Math.copySign(5, turretAngle);
+        }
+        turretAngle = turretAngle + 45;
+
+
+
+
+            return  turretAngle + 90;
+//        return -4.86091*hoodAngle -818.80229;
+    }
+    public static double angle(){
+        return -turretAngle;
     }
 
     private void setHood(double hoodDegrees){
-        hood.setPosition(Math.min(1,Math.max(0.2,k*Math.toDegrees(hoodDegrees))));
+        hood.setPosition(-0.0000200129*Math.pow(hoodDegrees,3) + 0.00741561*Math.pow(hoodDegrees,2) - 0.953361*hoodDegrees + 83.356366);
     }
     public double getHood(){
         return hood.getPosition();

@@ -43,6 +43,7 @@ public class Turret {
     public GoBildaPinpointDriver driver;
     public  GoBildaPinpointDriver.EncoderDirection initialParDirection, initialPerpDirection;
 
+
     double currentAngle;
     public Turret(HardwareMap hardwareMap, Gamepad gamepad) {
         turretMotor = hardwareMap.get(DcMotorEx.class, "turret");
@@ -70,11 +71,11 @@ public class Turret {
         driver.resetPosAndIMU();
     }
 
-    public void runTurretGyro() {
+    public void runTurretTracking() {
 
 
 
-        botHeading = driver.getHeading(AngleUnit.DEGREES);
+
 
         //Calculates the turret's angle and converts the targetAngle to the motor ticks
         currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360.0 * gearRatio + botHeading;
@@ -138,7 +139,7 @@ public class Turret {
         turretMotor.setPower(power);
 
 
-        if(Math.abs(targetAngle) > 80){
+        if(Math.abs(targetAngle) > 120){
             targetAngle = -targetAngle + Math.copySign(10, targetAngle);
         }
 

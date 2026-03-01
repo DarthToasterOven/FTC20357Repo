@@ -49,11 +49,12 @@ public class Auto2025RedNear extends LinearOpMode {
     public static double kS1 = 0.001, kV1 = 0.00055, kA1 = -0;
     public static double accel = 20;
 
-    public static double p2 = 0.00625 , i2 = 0.0, d2 = 0.00055;
+    public static double p2 = 0.00725 , i2 = 0.0, d2 = 0.00055;
     public static double kS2 = 0, kV2 = 0.000125, kA2 = 0;
 
     double gearRatio = 2.0 / 5.0;
-    public static int targetVel = -1275;
+    public static int defaultTargetVel = -1275; ////default
+    public static int targetVel = defaultTargetVel;
     public static int targetAngle = 0;
 
 
@@ -88,14 +89,17 @@ public class Auto2025RedNear extends LinearOpMode {
                     init = true;
                     hood.setPosition(1);
                 }
-                if (launch.getVelocity() <= -1230) { //1585
+                if (launch.getVelocity() <= -1230) {
 
                     trans.setPower(-1);
                     intake.setPower(-1);
+                    targetVel = -1245;
 
                 } else if (launch.getVelocity() >= -1230) {
                     trans.setPower(0);
                     intake.setPower(0);
+                    targetVel = -1275;
+
                 }
                 telemetryPacket.put("time",timer.seconds());
                 if(timer.seconds() < 1.5){
@@ -136,14 +140,15 @@ public class Auto2025RedNear extends LinearOpMode {
                 if (launch.getVelocity() <= -1230) { //1585
 
                     trans.setPower(-1);
-                    intake.setPower(-0.67);
+                    intake.setPower(-1);
+
 
                 } else if (launch.getVelocity() >= -1230) {
                     trans.setPower(0);
                     intake.setPower(0);
                 }
                 telemetryPacket.put("time",timer.seconds());
-                if(timer.seconds() < 3){
+                if(timer.seconds() < 2.7){
                     return true;
                 }
                 else{
@@ -176,6 +181,10 @@ public class Auto2025RedNear extends LinearOpMode {
             }
         }
         public Action revMotor() {return  new revLaunch();}
+
+        public Action SettargetVel (int target){
+            return new InstantAction(() -> targetVel = target);
+        }
     }
 
     IMU imu;
@@ -210,7 +219,6 @@ public class Auto2025RedNear extends LinearOpMode {
                 double currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360 * gearRatio;
 
                 double targetPos = (384.5 * targetAngle) / 360 * (5.0 / 2.0);
-                double motorPosition = turretMotor.getCurrentPosition();
                 SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(kS2, kV2, kA2);
 
 
@@ -256,8 +264,8 @@ public class Auto2025RedNear extends LinearOpMode {
 
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 if (!init) {
-                    trans.setPower(-0.18);
-                    intake.setPower(-0.55);
+                    trans.setPower(-1);
+                    intake.setPower(-1);
                     init = true;
                     timer = new ElapsedTime();
                 }
@@ -304,12 +312,12 @@ public class Auto2025RedNear extends LinearOpMode {
 
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 if (!init) {
-                    intake.setPower(-0.57);
+                    intake.setPower(-1);
                     init = true;
                     timer = new ElapsedTime();
                 }
 
-                if(timer.seconds() < 1.9 ){
+                if(timer.seconds() < 1.4 ){
                     return true;
                 }
                 else{

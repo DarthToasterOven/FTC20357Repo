@@ -456,7 +456,7 @@ public class Auto2025BlueNear extends LinearOpMode {
 
                 .strafeTo(new Vector2d(37,-50), new TranslationalVelConstraint(100.0))
                 .build();
-        Action tab7 = drive.actionBuilder(new Pose2d(35,-50,Math.toRadians(270)))
+        Action tab7 = drive.actionBuilder(new Pose2d(37,-50,Math.toRadians(270)))
                 .strafeTo(new Vector2d(-13,-13))
                 .build();
         Action tab8 = drive.actionBuilder(new Pose2d(-13,-13,Math.toRadians(270)))

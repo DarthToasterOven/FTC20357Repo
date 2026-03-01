@@ -49,7 +49,7 @@ public class MainDrive extends LinearOpMode {
     Servo led;
     private boolean lockedOn = false;
     private boolean mode = false;
-    double k = 0;
+    double k = 1;
 
     public static double distance = 0;
     public static double distanceX = 0;
@@ -80,10 +80,8 @@ public class MainDrive extends LinearOpMode {
         led = hardwareMap.get(Servo.class, "LED");
         intake = new IntakeV2(hardwareMap, gamepad1, gamepad2, aprilTag);
         turret = new Turret(hardwareMap,gamepad2);
-        pose = new Pose2d(-48,-50, Math.toRadians(270));
+        pose = new Pose2d(-55,46, Math.toRadians(130));
         mecanumDrive = new MecanumDrive(hardwareMap,pose);
-
-
 
 
         waitForStart();
@@ -98,6 +96,7 @@ public class MainDrive extends LinearOpMode {
 
 
             turret.runTurretNoGyro(k);
+            //Turret.setAngle(IntakeV2.angle());
 
             reLocalize();
 
@@ -117,7 +116,7 @@ public class MainDrive extends LinearOpMode {
             FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
             distanceX = mecanumDrive.localizer.getPose().position.x -(-70);
-            distanceY = mecanumDrive.localizer.getPose().position.y -(-70);
+            distanceY = mecanumDrive.localizer.getPose().position.y - (70);
             distance = Math.sqrt(Math.pow(distanceX,2)+Math.pow(distanceY,2));
 
 
@@ -210,8 +209,8 @@ public class MainDrive extends LinearOpMode {
         telemetry.addData("targetVel", intake.getTargetVel());
         telemetry.addLine("--------------------------------- ");
         telemetry.addLine("Misc.");
+        telemetry.addData("Comp", intake.calcShot(drivetrain.getHeading()));
         telemetry.addData("Target Angle", turret.targetAngle);
-        telemetry.addData("Comp", intake.calcShot(IntakeV2.getHeading()));
         telemetry.addData("Pose", mecanumDrive.localizer.getPose());
         telemetry.addData("Distance", distance);
         telemetry.addData("hood", intake.getHood());
