@@ -51,7 +51,7 @@ public class MainDrive extends LinearOpMode {
     public static double distanceY = 0;
 
     int rawStartAngle = 135;
-    int startAngle = 0;
+    public static int startAngle = 0;
     MecanumDrive mecanumDrive;
 
 
@@ -74,6 +74,7 @@ public class MainDrive extends LinearOpMode {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
         initAprilTag();
+
         drivetrain = new DriveTrain(hardwareMap,gamepad1);
         led = hardwareMap.get(Servo.class, "LED");
         intake = new IntakeV2(hardwareMap, gamepad1, gamepad2, aprilTag);
@@ -87,6 +88,7 @@ public class MainDrive extends LinearOpMode {
         // runs all of the systems
         while (opModeIsActive()) {
             led.setPosition(1);
+
             initTelemetry();
             telemetryAprilTag();
             getMotif();
@@ -208,7 +210,6 @@ public class MainDrive extends LinearOpMode {
         telemetry.addData("targetVel", intake.getTargetVel());
         telemetry.addLine("--------------------------------- ");
         telemetry.addLine("Misc.");
-        telemetry.addData("Comp", intake.calcShot(drivetrain.getHeading(), startAngle));
         telemetry.addData("Target Angle", turret.targetAngle);
         telemetry.addData("Pose", mecanumDrive.localizer.getPose());
         telemetry.addData("Distance", distance);
@@ -260,34 +261,10 @@ public class MainDrive extends LinearOpMode {
 
             }
 
-//            if (detection.metadata != null && lockedOn && (detection.id == 24 || detection.id == 23)) {// Checks if there is a detection and that the lockon is active
-//                if(Math.abs(detection.ftcPose.bearing) < 100 ) {// make higher??
-//                    turret.setAngle((turret.getTurretAngle() - detection.ftcPose.bearing) * 0.75);
-//                }
-
-//            if (detection.metadata != null && lockedOn && (detection.id == 24 || detection.id == 23)) {
-//                if (Math.abs(detection.ftcPose.bearing) <30) {
-//
-//                    turret.turretPow((detection.ftcPose.bearing + 30) * (-0.1 - 0.1) / (30 + 30) + 0.1);
-//                }
-//                else{
-//                    turret.turretPow(0);
-//                }
-
             if (detection.metadata != null && lockedOn && (detection.id == 20 || detection.id == 24)) {
 
 
                 double error = detection.ftcPose.bearing; // angle to target in degrees
-
-//                if(bearing < -4){
-//                    turret.setAngle(turret.getTurretAngle() - 1);
-//                }
-//                if(bearing > 4){
-//                    turret.setAngle(turret.getTurretAngle() + 1);
-//
-//                }
-
-
 
 
                 if(error > 5){
@@ -299,37 +276,6 @@ public class MainDrive extends LinearOpMode {
                 if(Math.abs(error) <= 2){
                     turret.setAngle(turret.getTurretAngle()*1.01);
                 }
-
-
-//                if(bearing > 20){
-//                    turret.setAngle(turret.getTurretAngle() - 15);
-//                }
-//                else if(bearing > 10){
-//                    turret.setAngle(turret.getTurretAngle() - 6);
-//                }
-//                else if (bearing > 5){
-//                    turret.setAngle(turret.getTurretAngle() - 3);
-//                }
-//                else if (bearing > 2){
-//                    turret.setAngle(turret.getTurretAngle() - 1);
-//                }x`
-//
-//                if(bearing < -20){
-//                    turret.setAngle(turret.getTurretAngle() + 15);
-//                }
-//                else if(bearing < -10){
-//                    turret.setAngle(turret.getTurretAngle() + 6);
-//                }
-//                else if(bearing < -5){
-//                    turret.setAngle(turret.getTurretAngle() + 3);
-//                }
-//                else if (bearing < -2){
-//                    turret.setAngle(turret.getTurretAngle() + 1);
-//                }
-//
-//                if(Math.abs(bearing) < 1.5){
-//                    turret.setAngle(turret.getTurretAngle());
-//                }
 
             }
         }
@@ -388,13 +334,6 @@ public class MainDrive extends LinearOpMode {
     public static double getDistance(){
         return distance = Math.sqrt(Math.pow(distanceX,2)+Math.pow(distanceY,2));
     }
-
-
-    //notes
-    // make the code set allaince upon looking at the corresponding apriltag
-    //
-
-
 
 
 }

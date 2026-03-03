@@ -73,10 +73,6 @@ public class Turret {
 
     public void runTurretTracking() {
 
-
-
-
-
         //Calculates the turret's angle and converts the targetAngle to the motor ticks
         currentAngle = (turretMotor.getCurrentPosition() / 384.5) * 360.0 * gearRatio + botHeading;
 

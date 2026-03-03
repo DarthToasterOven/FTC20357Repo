@@ -27,7 +27,6 @@ public class Pinpoint{
         driver.setEncoderResolution(1 / mmPerTick, DistanceUnit.MM);
         driver.setOffsets(mmPerTick * PARAMS.parYTicks, mmPerTick * PARAMS.perpXTicks, DistanceUnit.MM);
 
-        // TODO: reverse encoder directions if needed
         initialParDirection = GoBildaPinpointDriver.EncoderDirection.REVERSED;
         initialPerpDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
 
@@ -50,5 +49,6 @@ public class Pinpoint{
     public double getVelY(){
         return driver.getVelY(DistanceUnit.INCH);
     }
+
 }
 

@@ -1,13 +1,11 @@
 package org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.PoseVelocity2d;
-import com.acmerobotics.roadrunner.Vector2d;
+
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.controller.wpilibcontroller.SimpleMotorFeedforward;
 
-import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -16,29 +14,26 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.RR.MecanumDrive;
-import org.firstinspires.ftc.teamcode.RR.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.Toros.Drive.MainDrive;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import org.opencv.core.Mat;
+
 
 import com.arcrobotics.ftclib.util.LUT;
-import com.sun.tools.javac.Main;
+
 
 @Config
 public class IntakeV2 {
-    private DcMotorEx intakeMotor;
+    private final DcMotorEx intakeMotor;
     public DcMotorEx launch;
-    private Servo hood;
-    private DcMotorEx trans;
+    private final Servo hood;
+    private final DcMotorEx trans;
     public ColorSensor c1, c2, c3;
-    private AprilTagProcessor aprilTag;
+    private final AprilTagProcessor aprilTag;
 
-
+    static double turretAngle = 0;
     Gamepad gamepad1;
-    private PIDController controller;
+    private final PIDController controller;
 
     public static double p1 = 0.0045, i1 = 0, d1 = 0;
     public static double kS = 0.001,kV = 0.00055,kA = 0;
@@ -46,15 +41,16 @@ public class IntakeV2 {
 
     public static double f1 = 0;
     public static double targetVel = -1800;
-    private Gamepad gamepad2;
+    private final Gamepad gamepad2;
     public int threshold = 30;
-
-    public double ticksPerSecond = 1500;
 
 
    public static double vel;
 
    Pinpoint pinpoint;
+
+    double hoodAngle = 0;
+    public static double heading;
 
     public IntakeV2(HardwareMap hardwareMap, Gamepad gamepad, Gamepad gamepadA, AprilTagProcessor aprilTag) {
         gamepad1 = gamepad;
@@ -78,23 +74,9 @@ public class IntakeV2 {
 
         pinpoint = new Pinpoint(hardwareMap);
     }
-    double hoodAngle = 0;
-    public static double heading;
 
     public void runLauncher() {
-        vel = Math.sqrt(Math.pow(pinpoint.getVelx(),2)+ Math.pow(pinpoint.getVelY(),2));
-        heading = pinpoint.getHeading();
-                //targetVel = -1* calcLaunch(0);
-        //double ff = Math.cos(Math.toRadians(targetVel /ticks_in_degrees)) * f1;
-            if (gamepad2.left_bumper)
-            {
-                //targetVel = airsort;
-                targetVel = -1480;
-                hood.setPosition(0.8);
-            }
-            else {
-                targetVel = calcLaunch1();
-            }
+        calcShot(heading, MainDrive.startAngle);
         if (gamepad1.b) {
             intakeMotor.setPower(0);
             trans.setPower(0);
@@ -121,16 +103,9 @@ public class IntakeV2 {
                 launch.setPower(0);
             }
 
-            if (gamepad2.right_trigger > 0.1) {
-                if (Math.abs(launch.getVelocity() - targetVel) <= threshold) { //threshold velocity
+            if (gamepad2.right_trigger > 0.1 && Math.abs(launch.getVelocity() - targetVel) <= threshold) {
                     trans.setPower(1);
                     intakeMotor.setPower(-1);
-                }
-                else {
-                    trans.setPower(0);
-                    intakeMotor.setPower(0);
-
-                }
             }
             else {
                 trans.setPower(0);
@@ -143,6 +118,11 @@ public class IntakeV2 {
 
 
     public void runIntake() {
+        vel = Math.sqrt(Math.pow(pinpoint.getVelx(),2)+ Math.pow(pinpoint.getVelY(),2));
+        heading = pinpoint.getHeading();
+
+
+
         //Moves ball into robot
         if (gamepad1.right_trigger > 0.25) {
             intakeMotor.setPower(-gamepad1.right_trigger);
@@ -155,8 +135,6 @@ public class IntakeV2 {
         if (gamepad1.left_trigger < 0.25 && gamepad1.right_trigger < 0.25 && gamepad2.right_trigger <0.25) {// turns off the motor if both triggers are not pressed
             intakeMotor.setPower(0);
         }
-
-
         //hardstop for all systems
         if (gamepad1.b) {
             intakeMotor.setPower(0);
@@ -166,10 +144,6 @@ public class IntakeV2 {
         if(c3.blue() > 150 && c2.blue() > 150 && c1.blue() > 150){
             gamepad1.rumble(1500);
         }
-
-
-       //setHood(hoodAngle);
-
 
 
         }
@@ -199,13 +173,9 @@ public class IntakeV2 {
     }
 
 
-    public static double k = -2.6;
+
 
     public double lastDistance = 1;
-    public static double h = 0.69;
-    public static double flywheelRadius = 0.048;
-    public static double minAngle = 40;
-    public static double maxAngle = 50;
     public static double minServo = 0.0;
     public static double maxServo = 1.0;
 
@@ -220,15 +190,14 @@ public class IntakeV2 {
 
 
 
-    static double turretAngle = 0;
-    public static int j = 0;
+
     public void calcShot(double robotHeading, int initAngle){
         double g = 32.174 * 12;
         double x =  MainDrive.getDistance() - 5; //distance - shoot past point radius
         double y = 26;
         double a = Math.toRadians(-30);
 
-        hoodAngle = Math.max(Math.toRadians(40),Math.min(Math.toRadians(60),Math.atan(2 *y/x- Math.tan(a)))); ///clamp / round
+        hoodAngle = Math.max(Math.toRadians(40),Math.min(Math.toRadians(60),Math.atan(2 *y/x- Math.tan(a))));
         int flywheelSpeed = (int) Math.sqrt(g * x * x / (2* Math.pow(Math.cos(hoodAngle),2) * (x * Math.tan(hoodAngle)-y)));
 
         double robotVelocity = getVel();
@@ -248,7 +217,7 @@ public class IntakeV2 {
         flywheelSpeed = (int) Math.sqrt(g*ndr*ndr / (2*Math.pow(Math.cos(hoodAngle),2) * (ndr * Math.tan(hoodAngle)- y)));
 
         double turretComp = Math.atan(perpendicular/ivr);
-        turretAngle = Math.toDegrees(robotHeading - Math.atan(MainDrive.getDistanceY()/ MainDrive.getDistanceX()))-initAngle;
+        turretAngle = Math.toDegrees(robotHeading - Math.atan(MainDrive.getDistanceY()/ MainDrive.getDistanceX()) + turretComp)-initAngle;
 
         if(Math.abs(turretAngle) > 150){
             turretAngle = -turretAngle + Math.copySign(5, turretAngle);
@@ -256,15 +225,13 @@ public class IntakeV2 {
 
         Turret.setAngle(-turretAngle);
         setHood(x);
-        targetVel = -4.86091*x -818.80229;
+
+        targetVel =   -4.86091 * flywheelSpeed - 254.80299;
 
     }
-    public static double angle(){
-        return -turretAngle;
-    }
 
-    private void setHood(double dist){
-        hood.setPosition(-0.0000200129*Math.pow(dist,3) + 0.00741561*Math.pow(dist,2) - 0.953361*dist + 83.356366);
+    private void setHood(double angle){
+        hood.setPosition(0 + ((70.0 - angle) / 30.0));
     }
     public double getHood(){
         return hood.getPosition();
@@ -317,48 +284,6 @@ public class IntakeV2 {
     }
 
 
-
-
-    public double calcLaunch2() { // to make air sort: add parameter?? if slow then: hood angle = high, else: calc hood angle
-
-        //vars
-        double distance = lastDistance;
-        boolean tagSeen = false;
-        double hoodAngleDeg = 60;
-        // Get distance
-        for (AprilTagDetection d : aprilTag.getDetections()) {
-            if (d.metadata != null && (d.id == 24 || d.id == 20)) {
-                distance = d.ftcPose.range * 0.0254;
-                tagSeen = true;
-                break;
-            }
-        }
-        if (tagSeen){
-            lastDistance = distance;
-        }
-        // Define distance
-        distance = Math.max(0.1, Math.min(4, distance));
-        //get hood angle (degrees)
-        hoodAngleDeg = 60 + (distance - 0.6) * (40 - 60) / (1 - 0.5);
-        // Define hood angle
-        hoodAngleDeg = Math.max(40, Math.min(60, hoodAngleDeg));
-        double hoodValue = minServo + ((60-hoodAngleDeg) / 20) * (maxServo - minServo);
-        hood.setPosition(hoodValue);
-        // Convert to rad
-        double theta = Math.toRadians(hoodAngleDeg);
-        // sqrt not 0 (very annoying)
-        double denom = 2*Math.pow(Math.cos(theta), 2) * (distance *Math.tan(theta) - h);
-        if (denom <= 0) return targetVel;
-        // the actual calculation
-        double v = distance * Math.sqrt(9.81 /denom);
-        // Linear to angular to ticks/sec
-        double omega = v / flywheelRadius;
-        ticksPerSecond = omega * 28 / (2 * Math.PI);
-        //tuning
-        ticksPerSecond *= k;
-        targetVel = (int) ticksPerSecond;
-        return (int) ticksPerSecond;
-    }
 public static double getVel(){
     return vel;
 }
