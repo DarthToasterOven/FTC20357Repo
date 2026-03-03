@@ -7,21 +7,16 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Pose2d;
-import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.LED;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.RR.Drawing;
 import org.firstinspires.ftc.teamcode.RR.MecanumDrive;
-import org.firstinspires.ftc.teamcode.RR.PinpointLocalizer;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.IntakeV2;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.Turret;
@@ -54,7 +49,11 @@ public class MainDrive extends LinearOpMode {
     public static double distance = 0;
     public static double distanceX = 0;
     public static double distanceY = 0;
+
+    int rawStartAngle = 135;
+    int startAngle = 0;
     MecanumDrive mecanumDrive;
+
 
     public Pose2d pose;
 
@@ -69,7 +68,6 @@ public class MainDrive extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-
         //Constructs the systems and makes them objects allowing to use a method to run the system and allows for other methods to be used
         allHubs = hardwareMap.getAll(LynxModule.class);
         for(LynxModule hub: allHubs){
@@ -80,9 +78,10 @@ public class MainDrive extends LinearOpMode {
         led = hardwareMap.get(Servo.class, "LED");
         intake = new IntakeV2(hardwareMap, gamepad1, gamepad2, aprilTag);
         turret = new Turret(hardwareMap,gamepad2);
-        pose = new Pose2d(-55,46, Math.toRadians(130));
+        pose = new Pose2d(-55,46, Math.toRadians(135));
         mecanumDrive = new MecanumDrive(hardwareMap,pose);
 
+        startAngle = calcInitAngle(rawStartAngle);
 
         waitForStart();
         // runs all of the systems
@@ -115,8 +114,8 @@ public class MainDrive extends LinearOpMode {
             Drawing.drawRobot(packet.fieldOverlay(), pose);
             FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
-            distanceX = mecanumDrive.localizer.getPose().position.x -(-70);
-            distanceY = mecanumDrive.localizer.getPose().position.y - (70);
+            distanceX = -70 -mecanumDrive.localizer.getPose().position.x ;
+            distanceY = 70 - mecanumDrive.localizer.getPose().position.y ;
             distance = Math.sqrt(Math.pow(distanceX,2)+Math.pow(distanceY,2));
 
 
@@ -209,7 +208,7 @@ public class MainDrive extends LinearOpMode {
         telemetry.addData("targetVel", intake.getTargetVel());
         telemetry.addLine("--------------------------------- ");
         telemetry.addLine("Misc.");
-        telemetry.addData("Comp", intake.calcShot(drivetrain.getHeading()));
+        telemetry.addData("Comp", intake.calcShot(drivetrain.getHeading(), startAngle));
         telemetry.addData("Target Angle", turret.targetAngle);
         telemetry.addData("Pose", mecanumDrive.localizer.getPose());
         telemetry.addData("Distance", distance);
@@ -231,10 +230,13 @@ public class MainDrive extends LinearOpMode {
 
             }
             if(gamepad2.yWasPressed() && detection.id == 20){
-                pose = new Pose2d(detection.ftcPose.range*Math.sin(turret.getTurretAngle())-(-76),detection.ftcPose.range*Math.cos(turret.getTurretAngle())-(-76),IntakeV2.getHeading());
+                int angle = (int) turret.getTurretAngle();
+                pose = new Pose2d(detection.ftcPose.range*Math.sin(turret.getTurretAngle())-(-76),detection.ftcPose.range*Math.cos(turret.getTurretAngle())-(-76),turret.getTurretAngle());
+                calcInitAngle(angle);
+
             }
             if(gamepad2.yWasPressed() && detection.id == 24){
-                pose = new Pose2d(detection.ftcPose.range*Math.sin(turret.getTurretAngle())-(-76),detection.ftcPose.range*Math.cos(turret.getTurretAngle())-(76),IntakeV2.getHeading());
+                pose = new Pose2d(detection.ftcPose.range*Math.sin(turret.getTurretAngle())-(-76),detection.ftcPose.range*Math.cos(turret.getTurretAngle())-(76),turret.getTurretAngle());
             }
         }
 
@@ -330,6 +332,16 @@ public class MainDrive extends LinearOpMode {
 //                }
 
             }
+        }
+    }
+    public static int calcInitAngle(int angle){
+        if(angle % 90 == 0){
+            return 90;
+        } else if (angle % 45 == 0) {
+            return 45;
+        }
+        else{
+            return (angle/45)*45;
         }
     }
 

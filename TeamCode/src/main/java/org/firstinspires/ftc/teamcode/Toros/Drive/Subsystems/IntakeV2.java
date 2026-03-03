@@ -82,7 +82,6 @@ public class IntakeV2 {
     public static double heading;
 
     public void runLauncher() {
-        targetVel = calcShot(heading);
         vel = Math.sqrt(Math.pow(pinpoint.getVelx(),2)+ Math.pow(pinpoint.getVelY(),2));
         heading = pinpoint.getHeading();
                 //targetVel = -1* calcLaunch(0);
@@ -223,7 +222,7 @@ public class IntakeV2 {
 
     static double turretAngle = 0;
     public static int j = 0;
-    public double calcShot(double robotHeading){
+    public void calcShot(double robotHeading, int initAngle){
         double g = 32.174 * 12;
         double x =  MainDrive.getDistance() - 5; //distance - shoot past point radius
         double y = 26;
@@ -249,25 +248,23 @@ public class IntakeV2 {
         flywheelSpeed = (int) Math.sqrt(g*ndr*ndr / (2*Math.pow(Math.cos(hoodAngle),2) * (ndr * Math.tan(hoodAngle)- y)));
 
         double turretComp = Math.atan(perpendicular/ivr);
-        turretAngle = Math.toDegrees(robotHeading - Math.atan(MainDrive.getDistanceY()/ MainDrive.getDistanceX()) + turretComp);
+        turretAngle = Math.toDegrees(robotHeading - Math.atan(MainDrive.getDistanceY()/ MainDrive.getDistanceX()))-initAngle;
 
-        if(Math.abs(turretAngle) > 80){
+        if(Math.abs(turretAngle) > 150){
             turretAngle = -turretAngle + Math.copySign(5, turretAngle);
         }
-        turretAngle = turretAngle + 45;
 
+        Turret.setAngle(-turretAngle);
+        setHood(x);
+        targetVel = -4.86091*x -818.80229;
 
-
-
-            return  turretAngle + 90;
-//        return -4.86091*hoodAngle -818.80229;
     }
     public static double angle(){
         return -turretAngle;
     }
 
-    private void setHood(double hoodDegrees){
-        hood.setPosition(-0.0000200129*Math.pow(hoodDegrees,3) + 0.00741561*Math.pow(hoodDegrees,2) - 0.953361*hoodDegrees + 83.356366);
+    private void setHood(double dist){
+        hood.setPosition(-0.0000200129*Math.pow(dist,3) + 0.00741561*Math.pow(dist,2) - 0.953361*dist + 83.356366);
     }
     public double getHood(){
         return hood.getPosition();
@@ -278,7 +275,7 @@ public class IntakeV2 {
 
 
     public static double getHeading(){
-        return h;
+        return heading;
     }
 
     public double calcLaunch1() {
