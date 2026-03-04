@@ -126,12 +126,6 @@ public class DriveTrain {
 
     public void driveRobotCentric(){
 
-        if(gamepad1.xWasPressed()){
-            imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(
-                    RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
-                    RevHubOrientationOnRobot.UsbFacingDirection.UP)));
-            imu.resetYaw();
-        }
 
         double x = gamepad1.left_stick_x; // the *1.1 counteracts imperfect strafing
         double y = -gamepad1.left_stick_y;

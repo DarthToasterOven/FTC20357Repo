@@ -7,6 +7,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -42,7 +43,7 @@ public class MainDrive extends LinearOpMode {
     public ColorSensor c3;
     List<LynxModule> allHubs;
     Servo led;
-    private boolean lockedOn = false;
+    public static boolean lockedOn = false;
     private boolean mode = false;
     double k = 1;
 
@@ -50,11 +51,18 @@ public class MainDrive extends LinearOpMode {
     public static double distanceX = 0;
     public static double distanceY = 0;
 
-    int rawStartAngle = 135;
+    int rawStartAngle = 225;
     public static int startAngle = 0;
     MecanumDrive mecanumDrive;
 
 
+    public Vector2d blueGoal = new Vector2d (-70,-70);
+    public Vector2d redGoal = new Vector2d(-70,70);
+
+    public Pose2d blueStart = new Pose2d (-55,-46, Math.toRadians(225));
+    public Pose2d redStart = new Pose2d (-55,46, Math.toRadians(135));
+
+    public Vector2d alliance = blueGoal;
     public Pose2d pose;
 
     public static double getDistanceX(){
@@ -79,7 +87,7 @@ public class MainDrive extends LinearOpMode {
         led = hardwareMap.get(Servo.class, "LED");
         intake = new IntakeV2(hardwareMap, gamepad1, gamepad2, aprilTag);
         turret = new Turret(hardwareMap,gamepad2);
-        pose = new Pose2d(-55,46, Math.toRadians(135));
+        pose = blueStart;
         mecanumDrive = new MecanumDrive(hardwareMap,pose);
 
         startAngle = calcInitAngle(rawStartAngle);
@@ -96,9 +104,15 @@ public class MainDrive extends LinearOpMode {
 
 
 
-            turret.runTurretNoGyro(k);
+            if(!lockedOn) { //true runs tracking false runs no tracking
+                turret.runTurretTracking();
+            }
+            else{
+                turret.runTurretNoGyro(k);
+            }
             //Turret.setAngle(IntakeV2.angle());
 
+            lockOn();
             reLocalize();
 
 
@@ -110,15 +124,24 @@ public class MainDrive extends LinearOpMode {
 
             Pose2d pose = mecanumDrive.localizer.getPose();
 
+            if(gamepad1.dpadUpWasPressed()){
+                alliance = blueGoal;
+
+            }
+            if(gamepad2.dpadDownWasPressed()){
+                alliance = redGoal;
+            }
+
 
             TelemetryPacket packet = new TelemetryPacket();
             packet.fieldOverlay().setStroke("#3F51B5");
             Drawing.drawRobot(packet.fieldOverlay(), pose);
             FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
-            distanceX = -70 -mecanumDrive.localizer.getPose().position.x ;
-            distanceY = 70 - mecanumDrive.localizer.getPose().position.y ;
+            distanceX = alliance.x -mecanumDrive.localizer.getPose().position.x ;
+            distanceY = alliance.y - mecanumDrive.localizer.getPose().position.y ;
             distance = Math.sqrt(Math.pow(distanceX,2)+Math.pow(distanceY,2));
+
 
 
         }
@@ -208,6 +231,7 @@ public class MainDrive extends LinearOpMode {
         telemetry.addData("Angle", turret.getTurretAngle());
         telemetry.addData("heading", drivetrain.getHeading());
         telemetry.addData("targetVel", intake.getTargetVel());
+
         telemetry.addLine("--------------------------------- ");
         telemetry.addLine("Misc.");
         telemetry.addData("Target Angle", turret.targetAngle);
@@ -232,12 +256,14 @@ public class MainDrive extends LinearOpMode {
             }
             if(gamepad2.yWasPressed() && detection.id == 20){
                 int angle = (int) turret.getTurretAngle();
-                pose = new Pose2d(detection.ftcPose.range*Math.sin(turret.getTurretAngle())-(-76),detection.ftcPose.range*Math.cos(turret.getTurretAngle())-(-76),turret.getTurretAngle());
-                calcInitAngle(angle);
+                pose = new Pose2d(detection.ftcPose.range*Math.sin(turret.getTurretAngle())-(alliance.x),detection.ftcPose.range*Math.cos(turret.getTurretAngle())-(alliance.y),turret.getTurretAngle());
+                startAngle = calcInitAngle(angle);
 
             }
             if(gamepad2.yWasPressed() && detection.id == 24){
-                pose = new Pose2d(detection.ftcPose.range*Math.sin(turret.getTurretAngle())-(-76),detection.ftcPose.range*Math.cos(turret.getTurretAngle())-(76),turret.getTurretAngle());
+                pose = new Pose2d(detection.ftcPose.range*Math.sin(turret.getTurretAngle())-(alliance.x),detection.ftcPose.range*Math.cos(turret.getTurretAngle())-(alliance.y),turret.getTurretAngle());
+                int angle = (int) turret.getTurretAngle();
+                startAngle = calcInitAngle(angle);
             }
         }
 
@@ -262,7 +288,6 @@ public class MainDrive extends LinearOpMode {
             }
 
             if (detection.metadata != null && lockedOn && (detection.id == 20 || detection.id == 24)) {
-
 
                 double error = detection.ftcPose.bearing; // angle to target in degrees
 

@@ -150,17 +150,17 @@ public class IntakeV2 {
 
     public void transfer(){
         if (gamepad1.right_bumper && c3.blue() > 150){
-            trans.setPower(-0.15);
+            trans.setPower(-0.1);
         }
 
         else if(gamepad1.right_bumper){
-            trans.setPower(0.35);
+            trans.setPower(0.2);
         }
         else{
             trans.setPower(0);
         }
         if(gamepad1.left_bumper){
-            trans.setPower(-0.35);
+            trans.setPower(-0.15);
         }
 
 
@@ -193,7 +193,7 @@ public class IntakeV2 {
 
     public void calcShot(double robotHeading, int initAngle){
         double g = 32.174 * 12;
-        double x =  MainDrive.getDistance() - 5; //distance - shoot past point radius
+        double x =  MainDrive.getDistance() - 3; //distance - shoot past point radius
         double y = 26;
         double a = Math.toRadians(-30);
 
@@ -216,14 +216,18 @@ public class IntakeV2 {
         hoodAngle = Math.max(Math.toRadians(40),Math.min(Math.toRadians(60),Math.atan(vz/nvr)));
         flywheelSpeed = (int) Math.sqrt(g*ndr*ndr / (2*Math.pow(Math.cos(hoodAngle),2) * (ndr * Math.tan(hoodAngle)- y)));
 
-        double turretComp = Math.atan(perpendicular/ivr);
-        turretAngle = Math.toDegrees(robotHeading - Math.atan(MainDrive.getDistanceY()/ MainDrive.getDistanceX()) + turretComp)-initAngle;
+        if(!MainDrive.lockedOn) {
+            double turretComp = Math.atan(perpendicular / ivr);
+            turretAngle = Math.toDegrees(robotHeading - Math.atan(MainDrive.getDistanceY() / MainDrive.getDistanceX()));
 
-        if(Math.abs(turretAngle) > 150){
-            turretAngle = -turretAngle + Math.copySign(5, turretAngle);
+            if (Math.abs(turretAngle) > 150) {
+                turretAngle = -turretAngle + Math.copySign(5, turretAngle);
+            }
+
+            Turret.setAngle((turretAngle+2) + initAngle);
         }
 
-        Turret.setAngle(-turretAngle);
+
         setHood(x);
 
         targetVel =   -4.86091 * flywheelSpeed - 254.80299;
@@ -234,7 +238,7 @@ public class IntakeV2 {
         hood.setPosition(0 + ((70.0 - angle) / 30.0));
     }
     public double getHood(){
-        return hood.getPosition();
+        return hoodAngle;
     }
 
 
