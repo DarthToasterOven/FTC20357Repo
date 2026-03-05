@@ -31,7 +31,7 @@ public class IntakeV2 {
     public ColorSensor c1, c2, c3;
     private final AprilTagProcessor aprilTag;
 
-    static double turretAngle = 0;
+    public static double turretAngle = 0;
     Gamepad gamepad1;
     private final PIDController controller;
 
@@ -143,6 +143,7 @@ public class IntakeV2 {
 
         if(c3.blue() > 150 && c2.blue() > 150 && c1.blue() > 150){
             gamepad1.rumble(1500);
+
         }
 
 

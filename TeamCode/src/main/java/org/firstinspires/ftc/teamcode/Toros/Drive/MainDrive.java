@@ -20,6 +20,7 @@ import org.firstinspires.ftc.teamcode.RR.Drawing;
 import org.firstinspires.ftc.teamcode.RR.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.IntakeV2;
+import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.PoseBridge;
 import org.firstinspires.ftc.teamcode.Toros.Drive.Subsystems.Turret;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -51,7 +52,7 @@ public class MainDrive extends LinearOpMode {
     public static double distanceX = 0;
     public static double distanceY = 0;
 
-    int rawStartAngle = 225;
+
     public static int startAngle = 0;
     MecanumDrive mecanumDrive;
 
@@ -60,7 +61,16 @@ public class MainDrive extends LinearOpMode {
     public Vector2d redGoal = new Vector2d(-70,70);
 
     public Pose2d blueStart = new Pose2d (-55,-46, Math.toRadians(225));
+    public Pose2d blueStartFar = new Pose2d(61.25,-12,Math.toRadians(270));
+    public Pose2d redStartFar = new Pose2d(61.25,12,Math.toRadians(90));
     public Pose2d redStart = new Pose2d (-55,46, Math.toRadians(135));
+
+    int angleRedNear = 135;
+    int angleRedFar = 90;
+    int angleBlueNear = 225;
+    int angleBlueFar = 270;
+
+    int rawStartAngle;
 
     public Vector2d alliance = blueGoal;
     public Pose2d pose;
@@ -83,6 +93,21 @@ public class MainDrive extends LinearOpMode {
         }
         initAprilTag();
 
+        double startX = -55;
+        double startY = 47;
+        double startHeadingDeg = 135;
+        if (PoseBridge.hasPose()) {
+            pose = PoseBridge.getPose();
+            PoseBridge.clear();
+            startX = pose.position.x;
+            startY = pose.position.y;
+            startHeadingDeg = Math.toDegrees(pose.heading.toDouble());
+            rawStartAngle = (int)pose.heading.toDouble();
+        } else {
+            pose = new Pose2d(startX, startY, Math.toRadians(startHeadingDeg));
+            rawStartAngle = (int) startHeadingDeg;
+        }
+
         drivetrain = new DriveTrain(hardwareMap,gamepad1);
         led = hardwareMap.get(Servo.class, "LED");
         intake = new IntakeV2(hardwareMap, gamepad1, gamepad2, aprilTag);
@@ -90,11 +115,12 @@ public class MainDrive extends LinearOpMode {
         pose = blueStart;
         mecanumDrive = new MecanumDrive(hardwareMap,pose);
 
-        startAngle = calcInitAngle(rawStartAngle);
+
 
         waitForStart();
         // runs all of the systems
         while (opModeIsActive()) {
+            startAngle = calcInitAngle(rawStartAngle);
             led.setPosition(1);
 
             initTelemetry();
@@ -104,7 +130,7 @@ public class MainDrive extends LinearOpMode {
 
 
 
-            if(!lockedOn) { //true runs tracking false runs no tracking
+            if(!lockedOn) { //true runs no tracking false runs with tracking
                 turret.runTurretTracking();
             }
             else{
@@ -126,10 +152,24 @@ public class MainDrive extends LinearOpMode {
 
             if(gamepad1.dpadUpWasPressed()){
                 alliance = blueGoal;
+                if(pose == blueStart) {
+                    rawStartAngle = 225;
+                }
+                else if(pose == blueStartFar){
+                    rawStartAngle = 270;
+                }
+
 
             }
             if(gamepad2.dpadDownWasPressed()){
                 alliance = redGoal;
+                if(pose == blueStart) {
+                    rawStartAngle = 135;
+                }
+                else if(pose == blueStartFar){
+                    rawStartAngle = 90;
+                }
+                startAngle = calcInitAngle(startAngle);
             }
 
 
@@ -255,15 +295,13 @@ public class MainDrive extends LinearOpMode {
 
             }
             if(gamepad2.yWasPressed() && detection.id == 20){
-                int angle = (int) turret.getTurretAngle();
-                pose = new Pose2d(detection.ftcPose.range*Math.sin(turret.getTurretAngle())-(alliance.x),detection.ftcPose.range*Math.cos(turret.getTurretAngle())-(alliance.y),turret.getTurretAngle());
-                startAngle = calcInitAngle(angle);
+                pose = new Pose2d(-(blueGoal.x-4) -detection.ftcPose.range*Math.sin(IntakeV2.turretAngle),(blueGoal.y-4) -detection.ftcPose.range*Math.cos(IntakeV2.turretAngle),drivetrain.getHeading());
+                startAngle = calcInitAngle(225);
 
             }
             if(gamepad2.yWasPressed() && detection.id == 24){
-                pose = new Pose2d(detection.ftcPose.range*Math.sin(turret.getTurretAngle())-(alliance.x),detection.ftcPose.range*Math.cos(turret.getTurretAngle())-(alliance.y),turret.getTurretAngle());
-                int angle = (int) turret.getTurretAngle();
-                startAngle = calcInitAngle(angle);
+                pose = new Pose2d((redGoal.x-4) + detection.ftcPose.range*Math.sin(IntakeV2.turretAngle),(redGoal.y+4) - detection.ftcPose.range*Math.cos(IntakeV2.turretAngle), drivetrain.getHeading());
+                startAngle = calcInitAngle(135);
             }
         }
 
@@ -282,10 +320,6 @@ public class MainDrive extends LinearOpMode {
 
            // }else {lockedOn = true;}
             // Rumble if aimed
-            if (detection.metadata != null && Math.abs(detection.ftcPose.bearing) < 2 && (detection.id == 20 || detection.id == 24)) {
-                gamepad2.rumble(500);
-
-            }
 
             if (detection.metadata != null && lockedOn && (detection.id == 20 || detection.id == 24)) {
 

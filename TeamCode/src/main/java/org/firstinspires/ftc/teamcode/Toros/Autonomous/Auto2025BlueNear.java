@@ -45,9 +45,9 @@ public class Auto2025BlueNear extends LinearOpMode {
     private DcMotor intake;
     private PIDController controller;
 
-    public static double p1 = 0.0045, i1 = 0, d1 = 0;
-    public static double kS1 = 0.001, kV1 = 0.00055, kA1 = -0;
-    public static double accel = 20;
+    public static double p1 = 0.006, i1 = 0.005, d1 = 0.0001;
+    public static double kS1 = 0.001, kV1 = 0.00047, kA1 = 0.005;
+    public static double accel = -30;
 
     public static double p2 = 0.00725 , i2 = 0.0, d2 = 0.00055;
     public static double kS2 = 0, kV2 = 0.000125, kA2 = 0;

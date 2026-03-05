@@ -37,7 +37,7 @@ public class MeepMeepTesting {
                 .setConstraints(60, 60, Math.PI, Math.PI, 14.25)
                 .build();
 
-        myFirstBot.runAction(myFirstBot.getDrive().actionBuilder(new Pose2d(-46, -48, Math.toRadians(270)))
+        myFirstBot.runAction(myFirstBot.getDrive().actionBuilder(new Pose2d(-46, -48, Math.toRadians(-90)))
                 .strafeToLinearHeading(new Vector2d(-12,-12),Math.toRadians(270)) // Preload
 
                 .strafeToLinearHeading(new Vector2d(-12,-28),Math.toRadians(270)) // first spike
